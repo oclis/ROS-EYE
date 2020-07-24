@@ -25,19 +25,21 @@ blender 설치 위치는 home 경로 위치에 설치
 	blender/2.83/python/bin$ ./python3.7m -m pip install pyrealsense2 
 	blender/2.83/python/bin$ ./python3.7m -m pip install multipledispatch
 
-<img src="/doc/guide5.jpg" width="450px" height="300px" title="px(픽셀) 크기 설정" alt="RubberDuck"></img><br/>
+<img src="/doc/guide5.png" width="450px" height="300px" title="px(픽셀) 크기 설정" alt="ROS_EYE"></img><br/>
 
 ### 실행
  
-<img src="/doc/guide1.jpg" width="450px" height="300px" title="px(픽셀) 크기 설정" alt="RubberDuck"></img><br/>
-<img src="/doc/guide2.jpg" width="450px" height="300px" title="px(픽셀) 크기 설정" alt="RubberDuck"></img><br/>
-<img src="/doc/guide3.jpg" width="450px" height="300px" title="px(픽셀) 크기 설정" alt="RubberDuck"></img><br/>
+<img src="/doc/guide1.png" width="450px" height="300px" title="px(픽셀) 크기 설정" alt="ROS_EYE"></img><br/>
+
+<img src="/doc/guide2.png" width="450px" height="300px" title="px(픽셀) 크기 설정" alt="ROS_EYE"></img><br/>
+
+<img src="/doc/guide3.png" width="450px" height="300px" title="px(픽셀) 크기 설정" alt="ROS_EYE"></img><br/>
 
 ### blender 메뉴 라인의 Scripting 탭 선택
 
-<img src="/doc/guide4.jpg" width="450px" height="300px" title="px(픽셀) 크기 설정" alt="RubberDuck"></img><br/>
+<img src="/doc/guide4.png" width="450px" height="300px" title="px(픽셀) 크기 설정" alt="ROS_EYE"></img><br/>
 
-<img src="/doc/guide6.jpg" width="450px" height="300px" title="px(픽셀) 크기 설정" alt="RubberDuck"></img><br/>
+<img src="/doc/guide6.jpg" width="450px" height="300px" title="px(픽셀) 크기 설정" alt="ROS_EYE"></img><br/>
 
 ### 마우스
 1. 왼쪽마우스
