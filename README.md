@@ -11,35 +11,40 @@ ROS기반 영상인식기술을 이용한 물류적재로봇 제어 SW
 설치
 -
 
-## blender Setting 
-
 	git clone https://github.com/oclis/ROS-EYE.git
+
+
+## Blender Setting 
+
+
 	
 blender version 2.80이상 설치 [https://www.blender.org/](https://www.blender.org/) 참조
 blender 설치 위치는 home 경로 위치에 설치
 
 필수 모듈 설치 
 
+<img src="/doc/guide5.png" width="600px" height="400px" title="px(픽셀) 크기 설정" alt="ROS_EYE"></img><br/>
+
 	blender/2.83/python/bin$ ./python3.7m -m ensurepip 실행
 	blender/2.83/python/bin$ ./python3.7m -m pip install opencv-python 
 	blender/2.83/python/bin$ ./python3.7m -m pip install pyrealsense2 
 	blender/2.83/python/bin$ ./python3.7m -m pip install multipledispatch
 
-<img src="/doc/guide5.png" width="450px" height="300px" title="px(픽셀) 크기 설정" alt="ROS_EYE"></img><br/>
+
 
 ### 실행
  
-<img src="/doc/guide1.png" width="450px" height="300px" title="px(픽셀) 크기 설정" alt="ROS_EYE"></img><br/>
+<img src="/doc/guide1.png" width="600px" height="400px" title="px(픽셀) 크기 설정" alt="ROS_EYE"></img><br/>
 
-<img src="/doc/guide2.png" width="450px" height="300px" title="px(픽셀) 크기 설정" alt="ROS_EYE"></img><br/>
+<img src="/doc/guide2.png" width="600px" height="400px" title="px(픽셀) 크기 설정" alt="ROS_EYE"></img><br/>
 
-<img src="/doc/guide3.png" width="450px" height="300px" title="px(픽셀) 크기 설정" alt="ROS_EYE"></img><br/>
+<img src="/doc/guide3.png" width="600px" height="400px" title="px(픽셀) 크기 설정" alt="ROS_EYE"></img><br/>
 
 ### blender 메뉴 라인의 Scripting 탭 선택
 
-<img src="/doc/guide4.png" width="450px" height="300px" title="px(픽셀) 크기 설정" alt="ROS_EYE"></img><br/>
+<img src="/doc/guide4.png" width="600px" height="400px" title="px(픽셀) 크기 설정" alt="ROS_EYE"></img><br/>
 
-<img src="/doc/guide6.jpg" width="450px" height="300px" title="px(픽셀) 크기 설정" alt="ROS_EYE"></img><br/>
+<img src="/doc/guide6.jpg" width="600px" height="400px" title="px(픽셀) 크기 설정" alt="ROS_EYE"></img><br/>
 
 ### 마우스
 1. 왼쪽마우스
