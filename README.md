@@ -25,10 +25,10 @@ blender Python용 모듈을 별로도 다시 pip를 이용하여 설치 해야�
 <img src="/doc/guide5.png" width="800px" height="500px" title="px(픽셀) 크기 설정" alt="ROS_EYE"></img><br/>
 
 #### Blender Python 추가 모듈 목록
-blender/2.83/python/bin$ ./python3.7m -m ensurepip 실행
-blender/2.83/python/bin$ ./python3.7m -m pip install opencv-python
-blender/2.83/python/bin$ ./python3.7m -m pip install pyrealsense2 
-blender/2.83/python/bin$ ./python3.7m -m pip install multipledispatch
+	blender/2.83/python/bin$ ./python3.7m -m ensurepip 실행
+	blender/2.83/python/bin$ ./python3.7m -m pip install opencv-python
+	blender/2.83/python/bin$ ./python3.7m -m pip install pyrealsense2
+	blender/2.83/python/bin$ ./python3.7m -m pip install multipledispatch
 
 ### 실행
 
