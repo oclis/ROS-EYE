@@ -105,7 +105,7 @@ class Maviz:
         self.mover.update(time_delta)
 
     def set_event(self, event, context):
-        if event.type == 'R' and event.value == 'PRESS':
+        if event.type == 'P' and event.value == 'PRESS':
             if self.is_rotation:
                 print('rotation off')
                 self.is_rotation = False
@@ -156,93 +156,32 @@ class Maviz:
             if event.value == 'PRESS':
                 budp.draw_Ui_Ur_Add_Pose(self.mover.cur_location, self.mover.cur_roatation)
 
-        if (event.type == 'C' and event.value == 'PRESS'):
-            if (bof.FLAG_CAMERA_LOC_ALT == True):
-                bpy.ops.object.select_all(action='DESELECT')
-                bof.FLAG_CAMERA_LOC_ALT = False
-                bof.FLAG_LCTRL_STATUS = False
-                print("=============================================")
-                print("========== Fix the Camera location ==========")
-                print("=============================================")
-                print(" ")
+        if event.type == 'H' and event.value == 'PRESS':
+            bod.data_Switch_Camera_Loc_Rot_Value(6.5, -60, 5.4, 90, 0, 0)
 
-            elif (bof.FLAG_CAMERA_LOC_ALT == False):
-                bpy.ops.object.select_by_type(extend=False, type='CAMERA')
-                bof.FLAG_CAMERA_LOC_ALT = True
-                print("=============================================")
-                print("=== Camera is ready to alter the location ===")
-                print("=============================================")
-                print(" ")
+        if event.type == 'W' and event.value == 'PRESS':
+            bpy.ops.transform.translate(value=(0, 0, -1), orient_type='LOCAL')
 
-        if (bof.FLAG_CAMERA_LOC_ALT == True):
-            if (event.type == 'LEFT_CTRL' and event.value == 'PRESS'):
-                if (bof.FLAG_LCTRL_STATUS == True):
-                    bof.FLAG_LCTRL_STATUS = False
-                    print("----- Ctrl is unpressed -----")
-                    print(" ")
-                elif (bof.FLAG_LCTRL_STATUS == False):
-                    bof.FLAG_LCTRL_STATUS = True
-                    print("--- Ctrl is being pressed ---")
-                    print(" ")
+        if event.type == 'S' and event.value == 'PRESS':
+            bpy.ops.transform.translate(value=(0, 0, 1), orient_type='LOCAL')
 
-            if event.type == 'HOME' and event.value == 'PRESS':
-                if (bof.FLAG_LCTRL_STATUS == True):
-                    bod.data_Switch_Camera_Loc_Rot_Value(6.5, -60, 5.4, 90, 0, 0)
-                    bof.FLAG_LCTRL_STATUS = False
+        if event.type == 'D' and event.value == 'PRESS':
+            bpy.ops.transform.translate(value=(1, 0, 0), orient_type='LOCAL')
 
-            if event.type == 'W' and event.value == 'PRESS':
-                if (bof.FLAG_LCTRL_STATUS == True):
-                    bpy.ops.transform.translate(value=(0, 1, 0), orient_type='LOCAL')
-                else:
-                    bpy.ops.transform.translate(value=(0, 0, -1), orient_type='LOCAL')
+        if event.type == 'A' and event.value == 'PRESS':
+            bpy.ops.transform.translate(value=(-1, 0, 0), orient_type='LOCAL')
 
-            if event.type == 'S' and event.value == 'PRESS':
-                if (bof.FLAG_LCTRL_STATUS == True):
-                    bpy.ops.transform.translate(value=(0, -1, 0), orient_type='LOCAL')
-                else:
-                    bpy.ops.transform.translate(value=(0, 0, 1), orient_type='LOCAL')
+        if event.type == 'Q' and event.value == 'PRESS':
+            bpy.ops.transform.rotate(value=0.01, orient_axis='Y', orient_type='LOCAL')
 
-            if event.type == 'D' and event.value == 'PRESS':
-                if (bof.FLAG_LCTRL_STATUS == True):
-                    bpy.ops.transform.rotate(value=-0.03, orient_axis='Z', orient_type='LOCAL')
-                else:
-                    bpy.ops.transform.translate(value=(1, 0, 0), orient_type='LOCAL')
+        if event.type == 'E' and event.value == 'PRESS':
+            bpy.ops.transform.rotate(value=-0.01, orient_axis='Y', orient_type='LOCAL')
 
-            if event.type == 'A' and event.value == 'PRESS':
-                if (bof.FLAG_LCTRL_STATUS == True):
-                    bpy.ops.transform.rotate(value=0.03, orient_axis='Z', orient_type='LOCAL')
-                else:
-                    bpy.ops.transform.translate(value=(-1, 0, 0), orient_type='LOCAL')
+        if event.type == 'R' and event.value == 'PRESS':
+            bpy.ops.transform.rotate(value=0.01, orient_axis='X', orient_type='LOCAL')
 
-            if event.type == 'Q' and event.value == 'PRESS':
-                if (bof.FLAG_LCTRL_STATUS == True):
-                    bpy.ops.transform.rotate(value=-0.03, orient_axis='Y', orient_type='LOCAL')
-                    bpy.ops.transform.translate(value=(-2, 0, 0), orient_type='LOCAL')
-                else:
-                    bpy.ops.transform.rotate(value=0.01, orient_axis='Y', orient_type='LOCAL')
-
-            if event.type == 'E' and event.value == 'PRESS':
-                if (bof.FLAG_LCTRL_STATUS == True):
-                    bpy.ops.transform.rotate(value=0.03, orient_axis='Y', orient_type='LOCAL')
-                    bpy.ops.transform.translate(value=(2, 0, 0), orient_type='LOCAL')
-                else:
-                    bpy.ops.transform.rotate(value=-0.01, orient_axis='Y', orient_type='LOCAL')
-
-            if event.type == 'T' and event.value == 'PRESS':
-                if (bof.FLAG_LCTRL_STATUS == True):
-                    bpy.ops.transform.rotate(value=-0.035, orient_axis='X', orient_type='LOCAL')
-                    bpy.ops.transform.translate(value=(0, 2, 0), orient_type='LOCAL')
-                    bpy.ops.transform.translate(value=(0, 0, -3), orient_type='LOCAL')
-                else:
-                    bpy.ops.transform.rotate(value=0.01, orient_axis='X', orient_type='LOCAL')
-
-            if event.type == 'G' and event.value == 'PRESS':
-                if (bof.FLAG_LCTRL_STATUS == True):
-                    bpy.ops.transform.rotate(value=0.035, orient_axis='X', orient_type='LOCAL')
-                    bpy.ops.transform.translate(value=(0, -2, 0), orient_type='LOCAL')
-                    bpy.ops.transform.translate(value=(0, 0, 3), orient_type='LOCAL')
-                else:
-                    bpy.ops.transform.rotate(value=-0.01, orient_axis='X', orient_type='LOCAL')
+        if event.type == 'F' and event.value == 'PRESS':
+            bpy.ops.transform.rotate(value=-0.01, orient_axis='X', orient_type='LOCAL')
 
     def curPose(self):
         return self.mover.cur_location
