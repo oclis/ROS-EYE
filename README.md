@@ -57,7 +57,7 @@ blender Python용 모듈을 별로도 다시 pip를 이용하여 설치 해야�
 ### 키보드
 
 로컬 축  
- y   z  
+ y 　z  
 ↑↗  
 ▣ → x  
 
