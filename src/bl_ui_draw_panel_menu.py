@@ -19,16 +19,17 @@ class Bl_Ui_Draw_Panel_Menu():
         self.WinLable = BL_UI_Label(10, 10, 200, 25)
         self.WinLable.text = "MAVIZ | UR5 "
         self.WinLable.text_size = 24
-        self.WinLable.text_color = (0.6, 0.9, 0.3, 1.0)
+        self.WinLable.text_color = (0.8, 0.8, 0.2, 1.0)
 
         self.MotionRunA = BL_UI_Button(160, 60, 140, 85)
-        self.MotionRunA.bg_color = (0.2, 0.8, 0.8, 0.8)
-        self.MotionRunA.hover_bg_color = (0.2, 0.9, 0.9, 1.0)
+        self.MotionRunA.bg_color = (0.2, 0.4, 0.7, 0.9)
+        self.MotionRunA.hover_bg_color = (0.1, 0.3, 0.6, 0.9)
+        self.MotionRunA.select_bg_color = (0.5, 0.5, 0.5, 1.0)
         self.MotionRunA.text = "Run"
         self.MotionRunA.text_size = 32
         # self.MotionRunB.set_image("//img/gray_r.png")
-        self.MotionRunA.set_image_size((24, 24))
-        self.MotionRunA.set_image_position((4, 2))
+        # self.MotionRunA.set_image_size((24, 24))
+        # self.MotionRunA.set_image_position((4, 2))
         self.MotionRunA.set_mouse_down(self.bcall_Run_Motion)
 
         self.SpeedText = BL_UI_Label(25, 65, 150, 15)
@@ -36,8 +37,9 @@ class Bl_Ui_Draw_Panel_Menu():
         self.SpeedText.text_size = 13
 
         self.SpeedUD = BL_UI_Up_Down(100, 65)
-        self.SpeedUD.color = (0.2, 0.8, 0.8, 0.8)
-        self.SpeedUD.hover_color = (0.2, 0.9, 0.9, 1.0)
+        self.SpeedUD.color = (0.8, 0.8, 0.8, 1.0)
+        self.SpeedUD.hover_color = (0.7, 0.7, 0.7, 1.0)
+        self.SpeedUD.select_color = (0.5, 0.5, 0.5, 1.0)
         self.SpeedUD.min = 1.0
         self.SpeedUD.max = 10.0
         self.SpeedUD.decimals = 0
@@ -50,8 +52,9 @@ class Bl_Ui_Draw_Panel_Menu():
         self.label_urMoveTimeNum.text_size = 16
 
         self.urMoveTimeUD = BL_UI_Up_Down(100, 95)
-        self.urMoveTimeUD.color = (0.2, 0.8, 0.8, 0.8)
-        self.urMoveTimeUD.hover_color = (0.2, 0.9, 0.9, 1.0)
+        self.urMoveTimeUD.color = (0.8, 0.8, 0.8, 1.0)
+        self.urMoveTimeUD.hover_color = (0.7, 0.7, 0.7, 1.0)
+        self.urMoveTimeUD.select_color = (0.5, 0.5, 0.5, 1.0)
         self.urMoveTimeUD.min = 0.0
         self.urMoveTimeUD.max = 10.0
         self.urMoveTimeUD.decimals = 0
@@ -64,8 +67,9 @@ class Bl_Ui_Draw_Panel_Menu():
         self.label_ur_Move_RadiusNum.text_size = 16
 
         self.ur_Move_RadiusUD = BL_UI_Up_Down(100, 125)
-        self.ur_Move_RadiusUD.color = (0.2, 0.8, 0.8, 0.8)
-        self.ur_Move_RadiusUD.hover_color = (0.2, 0.9, 0.9, 1.0)
+        self.ur_Move_RadiusUD.color = (0.8, 0.8, 0.8, 1.0)
+        self.ur_Move_RadiusUD.hover_color = (0.7, 0.7, 0.7, 1.0)
+        self.ur_Move_RadiusUD.select_color = (0.5, 0.5, 0.5, 1.0)
         self.ur_Move_RadiusUD.min = 0.0
         self.ur_Move_RadiusUD.max = 10.0
         self.ur_Move_RadiusUD.decimals = 0
@@ -76,9 +80,11 @@ class Bl_Ui_Draw_Panel_Menu():
         self.VeloText_Left_Panel.color = (0.2, 0.8, 0.8, 0.8)
         self.VeloText_Left_Panel.text = "Velo :"
         self.VeloText_Left_Panel.text_size = 16
+
         self.veloUD = BL_UI_Up_Down(100, 160)
-        self.veloUD.color = (0.2, 0.8, 0.8, 0.8)
-        self.veloUD.hover_color = (0.2, 0.9, 0.9, 1.0)
+        self.veloUD.color = (0.8, 0.8, 0.8, 1.0)
+        self.veloUD.hover_color = (0.7, 0.7, 0.7, 1.0)
+        self.veloUD.select_color = (0.5, 0.5, 0.5, 1.0)
         self.veloUD.min = 1.0
         self.veloUD.max = 10.0
         self.veloUD.decimals = 0
@@ -91,8 +97,9 @@ class Bl_Ui_Draw_Panel_Menu():
         self.AccelText_Left_Panel.text_size = 16
 
         self.accelUD = BL_UI_Up_Down(100, 190)
-        self.accelUD.color = (0.2, 0.8, 0.8, 0.8)
-        self.accelUD.hover_color = (0.2, 0.9, 0.9, 1.0)
+        self.accelUD.color = (1.0, 1.0, 1.0, 1.0)
+        self.accelUD.hover_color = (0.7, 0.7, 0.7, 1.0)
+        self.accelUD.select_hover = (0.5, 0.5, 0.5, 1.0)
         self.accelUD.min = 1.0
         self.accelUD.max = 10.0
         self.accelUD.decimals = 0
@@ -100,45 +107,50 @@ class Bl_Ui_Draw_Panel_Menu():
         self.accelUD.set_value_change(self.up_Down_On_Ur_Accel_Up_Down_Value_Change)
 
         self.Set_Ur_Velo_AccelA = BL_UI_Button(160, 160, 140, 50)
-        self.Set_Ur_Velo_AccelA.bg_color = (0.2, 0.8, 0.8, 0.8)
-        self.Set_Ur_Velo_AccelA.hover_bg_color = (0.2, 0.9, 0.9, 1.0)
+        self.Set_Ur_Velo_AccelA.bg_color = (0.2, 0.4, 0.7, 0.9)
+        self.Set_Ur_Velo_AccelA.hover_bg_color = (0.1, 0.3, 0.6, 0.9)
+        self.Set_Ur_Velo_AccelA.select_bg_color = (0.5, 0.5, 0.5, 1.0)
         self.Set_Ur_Velo_AccelA.text = "Set UR Speed"
-        self.Set_Ur_Velo_AccelA.set_image_size((24, 24))
-        self.Set_Ur_Velo_AccelA.set_image_position((4, 2))
+        # self.Set_Ur_Velo_AccelA.set_image_size((24, 24))
+        # self.Set_Ur_Velo_AccelA.set_image_position((4, 2))
         self.Set_Ur_Velo_AccelA.set_mouse_down(self.bcall_Set_Velo_Accel)
 
         self.Motionremv = BL_UI_Button(20, 280, 135, 70)
-        self.Motionremv.bg_color = (0.2, 0.8, 0.8, 0.8)
-        self.Motionremv.hover_bg_color = (0.2, 0.9, 0.9, 1.0)
+        self.Motionremv.bg_color = (0.2, 0.4, 0.7, 0.9)
+        self.Motionremv.hover_bg_color = (0.1, 0.3, 0.6, 0.9)
+        self.Motionremv.select_bg_color = (0.5, 0.5, 0.5, 1.0)
         self.Motionremv.text = "Motion Delete"
         # self.Motionremv.set_image("//img/gray_play.png")
-        self.Motionremv.set_image_size((24, 24))
-        self.Motionremv.set_image_position((4, 2))
+        # self.Motionremv.set_image_size((24, 24))
+        # self.Motionremv.set_image_position((4, 2))
         self.Motionremv.set_mouse_down(self.bcall_Draw_Del_Pose)
 
         self.RobotHomePA = BL_UI_Button(20, 220, 280, 50)
-        self.RobotHomePA.bg_color = (0.2, 0.8, 0.8, 0.8)
-        self.RobotHomePA.hover_bg_color = (0.2, 0.9, 0.9, 1.0)
+        self.RobotHomePA.bg_color = (0.2, 0.4, 0.7, 0.9)
+        self.RobotHomePA.hover_bg_color = (0.1, 0.3, 0.6, 0.9)
+        self.RobotHomePA.select_color = (0.5, 0.5, 0.5, 1.0)
         self.RobotHomePA.text = "Home Position"
         # self.RobotHomePA.set_image("//img/gray_play.png")
-        self.RobotHomePA.set_image_size((24, 24))
-        self.RobotHomePA.set_image_position((4, 2))
+        # self.RobotHomePA.set_image_size((24, 24))
+        # self.RobotHomePA.set_image_position((4, 2))
         self.RobotHomePA.set_mouse_down(self.bcalll_Return_To_Home)
 
         self.PoseSaveA = BL_UI_Button(165, 280, 135, 30)
-        self.PoseSaveA.bg_color = (0.2, 0.8, 0.8, 0.8)
-        self.PoseSaveA.hover_bg_color = (0.2, 0.9, 0.9, 1.0)
+        self.PoseSaveA.bg_color = (0.2, 0.4, 0.7, 0.9)
+        self.PoseSaveA.hover_bg_color = (0.1, 0.3, 0.6, 0.9)
+        self.PoseSaveA.select_color = (0.5, 0.5, 0.5, 1.0)
         self.PoseSaveA.text = "Save"
-        self.PoseSaveA.set_image_size((24, 24))
-        self.PoseSaveA.set_image_position((4, 2))
+        # self.PoseSaveA.set_image_size((24, 24))
+        # self.PoseSaveA.set_image_position((4, 2))
         self.PoseSaveA.set_mouse_down(self.bcall_Save_Pose_Lists)
 
         self.PoseLoadA = BL_UI_Button(165, 320, 135, 30)
-        self.PoseLoadA.bg_color = (0.2, 0.8, 0.8, 0.8)
-        self.PoseLoadA.hover_bg_color = (0.2, 0.9, 0.9, 1.0)
+        self.PoseLoadA.bg_color = (0.2, 0.4, 0.7, 0.9)
+        self.PoseLoadA.hover_bg_color = (0.1, 0.3, 0.6, 0.9)
+        self.PoseLoadA.select_color = (0.5, 0.5, 0.5, 1.0)
         self.PoseLoadA.text = "Load"
-        self.PoseLoadA.set_image_size((24, 24))
-        self.PoseLoadA.set_image_position((4, 2))
+        # self.PoseLoadA.set_image_size((24, 24))
+        # self.PoseLoadA.set_image_position((4, 2))
         self.PoseLoadA.set_mouse_down(self.bcall_Load_Ur_Pose_Lists)
 
         # grip-massage MIN
@@ -167,14 +179,15 @@ class Bl_Ui_Draw_Panel_Menu():
         self.chb_select_3.set_mouse_down(self.checkbox_Mode_Select_3)
 
         self.setBoardResetBT = BL_UI_Button(20, 700, 280, 80)
-        self.setBoardResetBT.bg_color = (0.2, 0.8, 0.8, 0.8)
-        self.setBoardResetBT.hover_bg_color = (0.2, 0.9, 0.9, 1.0)
+        self.setBoardResetBT.bg_color = (0.8, 0.1, 0.5, 1.0)
+        self.setBoardResetBT.hover_bg_color = (0.7, 0.1, 0.3, 1.0)
+        self.setBoardResetBT.selsct_color = (0.5, 0.5, 0.5, 1.0)
         self.setBoardResetBT.text = "STOP"
         self.setBoardResetBT.text_color = (1.0, 1.0, 1.0, 1.0)
         self.setBoardResetBT.text_size = 36
         # self.setBoardResetBT.set_image("//img/rotate.png")
-        self.setBoardResetBT.set_image_size((24, 24))
-        self.setBoardResetBT.set_image_position((4, 2))
+        # self.setBoardResetBT.set_image_size((24, 24))
+        # self.setBoardResetBT.set_image_position((4, 2))
         self.setBoardResetBT.set_mouse_down(self.bcall_Stop_Emergency)
 
         widgets_panel = [self.MotionRunA, self.WinLable, self.RobotHomePA, self.Motionremv, self.VeloText_Left_Panel,
@@ -192,7 +205,7 @@ class Bl_Ui_Draw_Panel_Menu():
         self.WinLable2 = BL_UI_Label(10, 10, 200, 25)
         self.WinLable2.text = "Information"
         self.WinLable2.text_size = 26
-        self.WinLable2.text_color = (0.6, 0.9, 0.3, 1.0)
+        self.WinLable2.text_color = (0.8, 0.8, 0.2, 1.0)
 
         self.CommLabel = BL_UI_Label(25, 50, 200, 25)
         self.CommLabel.text_color = (1.0, 1.0, 1.0, 1.0)
@@ -202,7 +215,7 @@ class Bl_Ui_Draw_Panel_Menu():
         self.RobotText = BL_UI_Label(25, 90, 200, 25)
         self.RobotText.text = "Robot"
         self.RobotText.text_size = 20
-        self.RobotText.text_color = (0.6, 0.9, 0.3, 1.0)
+        self.RobotText.text_color = (0.8, 0.8, 0.2, 1.0)
 
         self.RobotConCHK = BL_UI_Checkbox(45, 130, 100, 15)
         self.RobotConCHK.text = ""
@@ -211,8 +224,8 @@ class Bl_Ui_Draw_Panel_Menu():
         self.RobotConCHK.is_checked = False
 
         self.ShutdownB = BL_UI_Button(20, 510, 280, 60)
-        self.ShutdownB.bg_color = (0.2, 0.8, 0.8, 0.8)
-        self.ShutdownB.hover_bg_color = (0.2, 0.9, 0.9, 1.0)
+        self.ShutdownB.bg_color = (0.8, 0.1, 0.5, 1.0)
+        self.ShutdownB.hover_bg_color = (0.7, 0.1, 0.3, 1.0)
         self.ShutdownB.text = "PROGRAM SHUTDOWN"
         self.ShutdownB.text_size = 22
         # self.ShutdownB.set_image("//img/rotate.png")
