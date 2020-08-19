@@ -51,18 +51,34 @@ def URxMoveToPoseOperator(code, cmd1 = 0, cmd2 = 0, cmd3 = 0):
     print("debug : URxMoveToPoseOperator code : 6 , PROGRAM_shut_Down")
     bl_Server.shut_Down()
 
-  elif(code == 7):
-    print("debug : ")
+  elif(code == 7):     #왼쪽위에
+    # print("debug : ")
+    print("Left max")
+    bpy.data.objects['ik_control'].location.x = 0.0
+    bpy.data.objects['ik_control'].location.y = 10.0
+    bpy.data.objects['ik_control'].location.z = 8.0
 
-  elif(code == 8):
-    print("debug : ")
+  elif(code == 8):      #왼쪽아래
+    # print("debug : ")
+    print("Left min")
+    bpy.data.objects['ik_control'].location.x = 0.0
+    bpy.data.objects['ik_control'].location.y = 10.0
+    bpy.data.objects['ik_control'].location.z = 2.0
 
-  elif(code == 9):
-    print("debug : ")
+  elif(code == 9):      #오른쪽위에
+    # print("debug : ")
+    print("Right max")
+    bpy.data.objects['ik_control'].location.x = 10.0
+    bpy.data.objects['ik_control'].location.y = 10.0
+    bpy.data.objects['ik_control'].location.z = 8.0
 
-  elif (code == 10):
-    print("debug : ")
-
+  elif (code == 10):    #오른쪽아래
+    # print("debug : ")
+    print("Right min")
+    bpy.data.objects['ik_control'].location.x = 10.0
+    bpy.data.objects['ik_control'].location.y = 10.0
+    bpy.data.objects['ik_control'].location.z = 2.0
+    
   elif (code == 11):
     print("debug : ")
 
