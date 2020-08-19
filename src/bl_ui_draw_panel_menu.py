@@ -118,7 +118,11 @@ class Bl_Ui_Draw_Panel_Menu():
         self.Motionremv = BL_UI_Button(20, 280, 135, 70)
         self.Motionremv.bg_color = (0.2, 0.4, 0.7, 0.9)
         self.Motionremv.hover_bg_color = (0.1, 0.3, 0.6, 0.9)
+<<<<<<< HEAD
         self.Motionremv.select_color = (0.5, 0.5, 0.5, 1.0)
+=======
+        self.Motionremv.select_bg_color = (0.5, 0.5, 0.5, 1.0)
+>>>>>>> ee90380b6a7be84963d9d989b481f4fb03250e4a
         self.Motionremv.text = "Motion Delete"
         # self.Motionremv.set_image("//img/gray_play.png")
         # self.Motionremv.set_image_size((24, 24))
@@ -181,7 +185,11 @@ class Bl_Ui_Draw_Panel_Menu():
         self.setBoardResetBT = BL_UI_Button(20, 700, 280, 80)
         self.setBoardResetBT.bg_color = (0.8, 0.1, 0.5, 1.0)
         self.setBoardResetBT.hover_bg_color = (0.7, 0.1, 0.3, 1.0)
+<<<<<<< HEAD
         self.setBoardResetBT.select_color = (0.5, 0.5, 0.5, 1.0)
+=======
+        self.setBoardResetBT.selsct_color = (0.5, 0.5, 0.5, 1.0)
+>>>>>>> ee90380b6a7be84963d9d989b481f4fb03250e4a
         self.setBoardResetBT.text = "STOP"
         self.setBoardResetBT.text_color = (1.0, 1.0, 1.0, 1.0)
         self.setBoardResetBT.text_size = 36
