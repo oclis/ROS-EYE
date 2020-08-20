@@ -27,7 +27,11 @@ class Bl_Ui_Draw_Panel_Menu():
         self.MotionRunA.select_bg_color = (0.5, 0.5, 0.5, 1.0)
         self.MotionRunA.text = "Run"
         self.MotionRunA.text_size = 32
+<<<<<<< HEAD
         # self.MotionRunB.set_image("//img/gray_r.png") #주석 풀었더니 오류 발생
+=======
+        # self.MotionRunB.set_image("//img/gray_r.png")
+>>>>>>> 07adae6d96a2a82abc5addfa4258282f674969d7
         # self.MotionRunA.set_image_size((24, 24))
         # self.MotionRunA.set_image_position((4, 2))
         self.MotionRunA.set_mouse_down(self.bcall_Run_Motion)
@@ -118,7 +122,15 @@ class Bl_Ui_Draw_Panel_Menu():
         self.Motionremv = BL_UI_Button(20, 280, 135, 70)
         self.Motionremv.bg_color = (0.2, 0.4, 0.7, 0.9)
         self.Motionremv.hover_bg_color = (0.1, 0.3, 0.6, 0.9)
+<<<<<<< HEAD
         self.Motionremv.select_bg_color = (0.5, 0.5, 0.5, 1.0)
+=======
+<<<<<<< HEAD
+        self.Motionremv.select_color = (0.5, 0.5, 0.5, 1.0)
+=======
+        self.Motionremv.select_bg_color = (0.5, 0.5, 0.5, 1.0)
+>>>>>>> ee90380b6a7be84963d9d989b481f4fb03250e4a
+>>>>>>> 07adae6d96a2a82abc5addfa4258282f674969d7
         self.Motionremv.text = "Motion Delete"
         # self.Motionremv.set_image("//img/gray_play.png")
         # self.Motionremv.set_image_size((24, 24))
@@ -181,7 +193,15 @@ class Bl_Ui_Draw_Panel_Menu():
         self.setBoardResetBT = BL_UI_Button(20, 700, 280, 80)
         self.setBoardResetBT.bg_color = (0.8, 0.1, 0.5, 1.0)
         self.setBoardResetBT.hover_bg_color = (0.7, 0.1, 0.3, 1.0)
+<<<<<<< HEAD
         self.setBoardResetBT.selsct_color = (0.5, 0.5, 0.5, 1.0)
+=======
+<<<<<<< HEAD
+        self.setBoardResetBT.select_color = (0.5, 0.5, 0.5, 1.0)
+=======
+        self.setBoardResetBT.selsct_color = (0.5, 0.5, 0.5, 1.0)
+>>>>>>> ee90380b6a7be84963d9d989b481f4fb03250e4a
+>>>>>>> 07adae6d96a2a82abc5addfa4258282f674969d7
         self.setBoardResetBT.text = "STOP"
         self.setBoardResetBT.text_color = (1.0, 1.0, 1.0, 1.0)
         self.setBoardResetBT.text_size = 36
@@ -190,7 +210,10 @@ class Bl_Ui_Draw_Panel_Menu():
         # self.setBoardResetBT.set_image_position((4, 2))
         self.setBoardResetBT.set_mouse_down(self.bcall_Stop_Emergency)
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 07adae6d96a2a82abc5addfa4258282f674969d7
         self.guideText = BL_UI_Label(25, 390, 150, 20)
         self.guideText.text = "Guide Line"
         self.guideText.text_size = 15
@@ -227,6 +250,7 @@ class Bl_Ui_Draw_Panel_Menu():
         self.guide_rn_button.text_size = 11
         self.guide_rn_button.set_mouse_down(self.guide_rn_func)
 
+<<<<<<< HEAD
         self.Move_Banner = BL_UI_Label(25, 450, 200, 20)
         self.Move_Banner.text = "Mesh"
         self.Move_Banner.text_size = 15
@@ -278,16 +302,22 @@ class Bl_Ui_Draw_Panel_Menu():
         self.Move_h.decimals = 2
         self.Move_h.set_value(bod.data_Ui_Ur_Mesh_z_value)
         self.Move_h.set_value_change(self.Slider_On_Ur_Mesh_z_value_Change)
+=======
+>>>>>>> 07adae6d96a2a82abc5addfa4258282f674969d7
 
         widgets_panel = [self.MotionRunA, self.WinLable, self.RobotHomePA, self.Motionremv, self.VeloText_Left_Panel,
                          self.AccelText_Left_Panel, self.veloUD, self.accelUD, self.Set_Ur_Velo_AccelA,
                          self.chb_select_1, self.chb_select_2, self.chb_select_3, self.urMoveTimeUD,
                          self.label_urMoveTimeNum, self.ur_Move_RadiusUD, self.label_ur_Move_RadiusNum,
                          self.PoseSaveA, self.PoseLoadA, self.setBoardResetBT, self.SpeedText, self.SpeedUD,
+<<<<<<< HEAD
                          self.guideText, self.guide_lx_button, self.guide_ln_button, self.guide_rx_button, self.guide_rn_button,
                          self.Move_Banner, self.Apply_object, self.Remove_object,
                          self.Move_x, self.Move_w, self.Move_z, self.Move_h]
 
+=======
+                         self.guideText, self.guide_lx_button, self.guide_ln_button, self.guide_rx_button, self.guide_rn_button]
+>>>>>>> 07adae6d96a2a82abc5addfa4258282f674969d7
 
 
         return widgets_panel
@@ -431,7 +461,10 @@ class Bl_Ui_Draw_Panel_Menu():
         if active_obj is not None:
             active_obj.hide_viewport = not state
 
+<<<<<<< HEAD
     # 내가 만든 함수
+=======
+>>>>>>> 07adae6d96a2a82abc5addfa4258282f674969d7
     def guide_lx_func(self, widget):
         print("Button '{0}' is pressed".format(widget.text))
         URxMoveToPoseOperator(7)
@@ -446,6 +479,7 @@ class Bl_Ui_Draw_Panel_Menu():
 
     def guide_rn_func(self, widget):
         print("Button '{0}' is pressed".format(widget.text))
+<<<<<<< HEAD
         URxMoveToPoseOperator(10)
 
     def apl_obj(self,widget):
@@ -478,3 +512,6 @@ class Bl_Ui_Draw_Panel_Menu():
         bpy.data.objects['ik_control'].location.x = bpy.data.objects['wheel'].location.x
         bpy.data.objects['ik_control'].location.z = bpy.data.objects['wheel'].location.z
         # bod.data_Switch_Camera_Loc_Rot_Value(0, 0, 0, 0, 0, 0)
+=======
+        URxMoveToPoseOperator(10)
+>>>>>>> 07adae6d96a2a82abc5addfa4258282f674969d7

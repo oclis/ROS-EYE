@@ -80,7 +80,11 @@ def URxMoveToPoseOperator(code, cmd1 = 0, cmd2 = 0, cmd3 = 0):
     bpy.data.objects['ik_control'].location.x = 10.0
     bpy.data.objects['ik_control'].location.y = 10.0
     bpy.data.objects['ik_control'].location.z = 2.0
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> 07adae6d96a2a82abc5addfa4258282f674969d7
   elif (code == 11):
     print("debug : ")
 
