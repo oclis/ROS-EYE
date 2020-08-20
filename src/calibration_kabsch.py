@@ -4,9 +4,9 @@
 ##                  Box Dimensioner with multiple cameras: Helper files 					  ####
 ##################################################################################################
 
-import pyrealsense2 as rs
+# import pyrealsense2 as rs
 import calculate_rmsd_kabsch as rmsd
-import numpy as np
+# import numpy as np
 from helper_functions import cv_find_chessboard, get_chessboard_points_3D, get_depth_at_pixel, convert_depth_pixel_to_metric_coordinate
 from realsense_device_manager import post_process_depth_frame
 

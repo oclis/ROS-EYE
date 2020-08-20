@@ -13,9 +13,9 @@
 ###########################################################################################################################
 
 # Import RealSense, OpenCV and NumPy
-import pyrealsense2 as rs
-import cv2
-import numpy as np
+# import pyrealsense2 as rs
+# import cv2
+# import numpy as np
 
 # Import helper functions and classes written to wrap the RealSense, OpenCV and Kabsch Calibration usage
 from collections import defaultdict

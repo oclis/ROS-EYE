@@ -24,6 +24,8 @@ class Bl_Op_Data():
     data_Ui_Ur_Radius = 0
     data_Ui_Ur_Velo = 0
     data_Ui_Ur_Accel = 0
+    data_Ui_Ur_Mesh_x_value = 0
+    data_Ui_Ur_Mesh_z_value = 0
 
     data_Curr_Ur_Angle = []
 
@@ -235,6 +237,20 @@ class Bl_Op_Data():
     def data_Get_Ui_Ur_Radius():
         #print(Bl_Op_Data.data_Ui_Ur_Radius)
         return Bl_Op_Data.data_Ui_Ur_Radius
+
+    # Mesh x value
+    def data_Set_Ui_Ur_Mesh_x_value(value):
+        Bl_Op_Data.data_Ui_Ur_Mesh_x_value = value
+
+    def data_Get_Ui_Ur_Mesh_x_value():
+        return Bl_Op_Data.data_Ui_Ur_Mesh_x_value
+
+    # Mesh z value
+    def data_Set_Ui_Ur_Mesh_z_value(value):
+        Bl_Op_Data.data_Ui_Ur_Mesh_z_value = value
+
+    def data_Get_Ui_Ur_Mesh_z_value():
+        return Bl_Op_Data.data_Ui_Ur_Mesh_z_value
 
     # - CURR UR DATA -
     # Curr Ur Angle

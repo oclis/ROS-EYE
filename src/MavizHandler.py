@@ -129,6 +129,10 @@ class MavizHandler(bpy.types.Operator):
                 self.stateUrRun = False
                 bof.FLAG_OP_SHUTDOWN = True
 
+        if bof.FLAG_MESH == True:
+            self.widgets_panel.follow()
+            # print("following")
+
         self._run()
         # buca.draw_Curr_Ur_FK() # Use UR5 in simulator
 

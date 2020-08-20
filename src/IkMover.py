@@ -1,6 +1,7 @@
 
 import bpy
 from maviz import *
+from bl_op_flag import Bl_Op_Flag as bof
 
 class IKMover:
     CMD_MOVE = 0
@@ -89,9 +90,10 @@ class IKMover:
             if self.glow_timer <= 0:
                 self.glow = False
 
-        if (self.active_commands):
-            self.bound_location[0] = self.position[0]
-            self.bound_location[2] = self.position[2]
+        if (bof.FLAG_MESH == False):
+            if (self.active_commands):
+                self.bound_location[0] = self.position[0]
+                self.bound_location[2] = self.position[2]
 
     def urManualControl(self):
         if self.urManualControlFlag == True:

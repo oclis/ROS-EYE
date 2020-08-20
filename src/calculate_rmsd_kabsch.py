@@ -17,7 +17,7 @@ https://github.com/charnley/rmsd
 __version__ = '1.2.5'
 
 
-import numpy as np
+# import numpy as np
 import re
 
 

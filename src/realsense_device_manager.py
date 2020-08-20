@@ -5,8 +5,8 @@
 ##################################################################################################
 
 
-import pyrealsense2 as rs
-import numpy as np
+# import pyrealsense2 as rs
+# import numpy as np
 
 """
   _   _        _                      _____                     _    _                    

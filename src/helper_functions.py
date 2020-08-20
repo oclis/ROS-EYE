@@ -5,8 +5,8 @@
 ##################################################################################################
 
 # Opencv helper functions and class
-import cv2
-import numpy as np
+# import cv2
+# import numpy as np
 
 """
   _   _        _                      _____                     _    _

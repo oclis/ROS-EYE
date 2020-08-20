@@ -6,7 +6,7 @@ class BL_UI_Slider(BL_UI_Widget):
     
     def __init__(self, x, y, width, height):
         super().__init__(x, y, width, height)
-        self._text_color        = (1.0, 1.0, 1.0, 1.0)
+        self._text_color     = (1.0, 1.0, 1.0, 1.0)
         self._color          = (0.5, 0.5, 0.7, 1.0)
         self._hover_color    = (0.5, 0.5, 0.8, 1.0)
         self._select_color   = (0.7, 0.7, 0.7, 1.0)
