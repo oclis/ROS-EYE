@@ -30,9 +30,9 @@ blender Python용 모듈을 별로도 다시 pip를 이용하여 설치 해야�
 	blender/2.83/python/bin$ ./python3.7m -m pip install pyrealsense2
 	blender/2.83/python/bin$ ./python3.7m -m pip install multipledispatch
 
-> WARNING: You are using pip version 19.0.3; however, version 20.2.2 is available. you should consider upgrading via the '/home/"user_name"/blender/2.83/python/bin/python3.7m -m pip install --upgrade pip' command
+> WARNING: You are using pip version 19.0.3; however, version 20.2.2 is available. you should consider upgrading via the '/home/"user_name"/blender/2.83/python/bin/python3.7m -m pip install --upgrade pip' command  
 오류가 발생한 경우 다음을 통해 해결한다.
-	./python3.7m -m pip install --upgrade pip
+>>./python3.7m -m pip install --upgrade pip
 
 ### 실행
 
