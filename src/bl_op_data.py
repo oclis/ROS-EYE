@@ -33,6 +33,37 @@ class Bl_Op_Data():
     data_Save_To_File_List = []
     data_Tcp_Clinet_List = {}
 
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+>>>>>>> 436ab8518fd4f08364b66d2e7bc5aee329f16939
+>>>>>>> 98fcb19e6b9d71714d9a5507b0afc01b261095d5
+>>>>>>> d775aa19af305356dd90483b4b5d2a7792655cd3
+    good_Word = ['삶이 있는 한 희망은 있다', '산다는것 그것은 치열한 전투이다.', '만족은 결과가 아니라 과정에서 온다.',
+         '부드러운 자 만이 언제나 진실로 강하다.', 'The journey is the reward.', 'Live simply that others may simply live.'
+         , 'Hate the sin, love the sinner. ', 'Peace is the path.']
+
+
+
+
+
+
+
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+<<<<<<< HEAD
+=======
+=======
+>>>>>>> e4723d5bd5d9a8dea7ae6b9a64486b0a7cf53bca
+>>>>>>> 436ab8518fd4f08364b66d2e7bc5aee329f16939
+>>>>>>> 98fcb19e6b9d71714d9a5507b0afc01b261095d5
+>>>>>>> d775aa19af305356dd90483b4b5d2a7792655cd3
     def data_Generate_Job():
         print("debug : data_Generate_Job 1")
         try:
