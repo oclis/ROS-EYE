@@ -38,7 +38,7 @@ you should consider upgrading via the
 '/home/"user_name"/blender/2.83/python/bin/python3.7m -m pip install --upgrade pip' command
 </pre>
 </code>
-./python3.7m -m pip install --upgrade pip
+>다음으로 해결 : ./python3.7m -m pip install --upgrade pip
 
 ### 실행
 
