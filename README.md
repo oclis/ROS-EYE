@@ -38,7 +38,11 @@ you should consider upgrading via the
 </pre>
 </code>  
 위의 오류가 발생한 경우 다음을 통해 해결한다.  
->>./python3.7m -m pip install --upgrade pip
+<pre>
+<code>
+./python3.7m -m pip install --upgrade pip
+</pre>
+</code>  
 
 ### 실행
 
