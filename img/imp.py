@@ -52,8 +52,8 @@ def aruco_detect(src_img):
     #print("corners:",corners)
     #print("ids:",ids)
     frame_markers = cv2.aruco.drawDetectedMarkers(src_img.copy(), corners, ids)
-
     '''
+    #마커 이용 마커에 다른 샘플 이미지 적용 예제
     if np.all(ids != None):
         frame_markers = cv2.aruco.drawDetectedMarkers(src_img.copy(), corners, ids)
         x1 = (corners[0][0][0][0], corners[0][0][0][1])
@@ -85,7 +85,6 @@ def aruco_detect(src_img):
     '''
     cv2.namedWindow('frame_markers', cv2.WINDOW_AUTOSIZE)
     cv2.imshow('frame_markers', frame_markers)
-
     #return frame_markers
 
 def diff(src1, src2):
@@ -103,6 +102,7 @@ def diff(src1, src2):
     #diff
     dst = cv2.absdiff(gray_src1, gray_src2)
     _, dst = cv2.threshold(dst, 25, 255, cv2.THRESH_BINARY)
+
     # ROI
     dst_roi = dst[y_roi: y_roi + h_roi, x_roi: x_roi + w_roi]
     diff_value = cv2.countNonZero(dst_roi)
@@ -111,7 +111,17 @@ def diff(src1, src2):
     #print(dst.dtype)
     cv2.namedWindow('ROI_diff', cv2.WINDOW_AUTOSIZE)
     cv2.imshow('ROI_diff', dst)
+
+    # calcOpticalFlowFarneback
+    flow = cv2.calcOpticalFlowFarneback(gray_src1, gray_src2, None, 0.5, 3, 13, 3, 5, 1.1, 0)
+    # print(flow)
+    img = draw_flow(gray_src2, flow)
+    cv2.namedWindow('img', cv2.WINDOW_AUTOSIZE)
+    cv2.imshow('img', img)
+    # print(diff_value)
+    return diff_value
     '''
+    #calcOpticalFlowPyrLK
     p0 = cv2.goodFeaturesToTrack(gray_src1, mask=None, **feature_params)
     # Create a mask image for drawing purposes
     mask = np.zeros_like(src1)
@@ -134,20 +144,17 @@ def diff(src1, src2):
     cv2.imshow('img', img)
     p0 = good_new.reshape(-1, 1, 2)
     '''
-    #calcOpticalFlowFarneback
-    flow = cv2.calcOpticalFlowFarneback(gray_src1, gray_src2, None, 0.5, 3, 13, 3, 5, 1.1, 0)
-    #print(flow)
-    img = draw_flow(gray_src2, flow)
-    cv2.namedWindow('img', cv2.WINDOW_AUTOSIZE)
-    cv2.imshow('img', img)
-    print(diff_value)
-    return diff_value
+
+
 
 #calcOpticalFlowFarneback
 def draw_flow(img, flow, step=16):
     h, w = img.shape[:2]
     y, x = np.mgrid[step/2:h:step, step/2:w:step].reshape(2, -1).astype(int)
     fx, fy = flow[y, x].T
+    #print("fx",fx)
+    #print("fy",fy)
+    #print("flow",flow)
     lines = np.vstack([x, y, x+fx, y+fy]).T.reshape(-1, 2, 2)
     lines = np.int32(lines + 0.5)
     vis = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
@@ -223,7 +230,6 @@ try:
             '''
         else:
             print("stop")
-
         # Apply colormap on depth image (image must be converted to 8-bit per pixel first)
         #depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
         # Stack both images horizontally
