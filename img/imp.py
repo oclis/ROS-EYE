@@ -13,6 +13,8 @@ print("opencv:", cv2.__version__)
 
 device_bool = False
 fileCounter = 0
+diffValue = 30000
+clipping_distance_in_meters = 0.5  # meter
 
 realsense_check = os.system("lsusb -d8086:0b07")
 if(realsense_check==0):     #device 연결 됐을 경우
@@ -23,69 +25,15 @@ else:
     print("> NOT connect realsense ! \n> python3 system exit !!!")
     sys.exit()
 
-'''
-# params for ShiTomasi corner detection
-feature_params = dict( maxCorners = 500,
-                       qualityLevel = 0.3,
-                       minDistance = 7,
-                       blockSize = 7 )
-
-# Parameters for lucas kanade optical flow
-lk_params = dict( winSize  = (15,15),
-                  maxLevel = 2,
-                  criteria = (cv2.TERM_CRITERIA_EPS | cv2.TERM_CRITERIA_COUNT, 10, 0.03))
-'''
 #ROI setting
 x_roi = 100
 y_roi = 40
 w_roi = 440
 h_roi = 400
 
-#aruco
-aruco_dict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_6X6_250)
-parameters = cv2.aruco.DetectorParameters_create()
-
-def aruco_detect(src_img):
-    gray_img = cv2.cvtColor(src_img, cv2.COLOR_BGR2GRAY)
-    # Detect Aruco markers
-    corners, ids, rejectedImgPoints = cv2.aruco.detectMarkers(gray_img, aruco_dict, parameters=parameters)
-    #print("corners:",corners)
-    #print("ids:",ids)
-    frame_markers = cv2.aruco.drawDetectedMarkers(src_img.copy(), corners, ids)
-    '''
-    #마커 이용 마커에 다른 샘플 이미지 적용 예제
-    if np.all(ids != None):
-        frame_markers = cv2.aruco.drawDetectedMarkers(src_img.copy(), corners, ids)
-        x1 = (corners[0][0][0][0], corners[0][0][0][1])
-        x2 = (corners[0][0][1][0], corners[0][0][1][1])
-        x3 = (corners[0][0][2][0], corners[0][0][2][1])
-        x4 = (corners[0][0][3][0], corners[0][0][3][1])
-
-        im_dst = src_img
-        im_src = cv2.imread("test.jpeg")
-        size = im_dst.shape
-        pts_dst = np.array([x1, x2, x3, x4])
-        pts_src = np.array(
-            [
-                [0, 0],
-                [size[1] - 1, 0],
-                [size[1] - 1, size[0] - 1],
-                [0, size[0] - 1]
-            ], dtype=float
-        )
-        h, status = cv2.findHomography(pts_src, pts_dst)
-        temp = cv2.warpPerspective(
-            im_src, h, (im_dst.shape[1], im_dst.shape[0]))
-        cv2.fillConvexPoly(im_dst, pts_dst.astype(int), 0, 16)
-        im_dst = im_dst + temp
-        cv2.imshow('Display', im_dst)
-    else:
-        display = src_img
-        cv2.imshow('Display', display)
-    '''
-    cv2.namedWindow('frame_markers', cv2.WINDOW_AUTOSIZE)
-    cv2.imshow('frame_markers', frame_markers)
-    #return frame_markers
+#BackgroundSubtractorMOG2
+fgbg = cv2.createBackgroundSubtractorMOG2(history=30, detectShadows=False)
+#fgbg = cv2.createBackgroundSubtractorKNN()
 
 def diff(src1, src2):
     if src1 is None:
@@ -105,6 +53,7 @@ def diff(src1, src2):
 
     # ROI
     dst_roi = dst[y_roi: y_roi + h_roi, x_roi: x_roi + w_roi]
+    cv2.rectangle(dst, (x_roi, y_roi), (x_roi+w_roi, y_roi+h_roi), (255, 0, 0) )
     diff_value = cv2.countNonZero(dst_roi)
     #print(dst.shape)
     #print(dst.size)
@@ -118,33 +67,8 @@ def diff(src1, src2):
     img = draw_flow(gray_src2, flow)
     cv2.namedWindow('img', cv2.WINDOW_AUTOSIZE)
     cv2.imshow('img', img)
-    # print(diff_value)
+    #print(diff_value)
     return diff_value
-    '''
-    #calcOpticalFlowPyrLK
-    p0 = cv2.goodFeaturesToTrack(gray_src1, mask=None, **feature_params)
-    # Create a mask image for drawing purposes
-    mask = np.zeros_like(src1)
-    # calculate optical flow
-    p1, st, err = cv2.calcOpticalFlowPyrLK(gray_src1, gray_src2, p0, None, **lk_params)
-
-    # Select good points
-    good_new = p1[st == 1]
-    good_old = p0[st == 1]
-
-    # draw the tracks
-    for i, (new, old) in enumerate(zip(good_new, good_old)):
-        a, b = new.ravel()
-        c, d = old.ravel()
-        mask = cv2.line(mask, (a, b), (c, d), (255, 0, 0), 2)
-        frame = cv2.circle(src2, (a, b), 5, (255, 0, 0), -1)
-    img = cv2.add(frame, mask)
-
-    cv2.namedWindow('img', cv2.WINDOW_AUTOSIZE)
-    cv2.imshow('img', img)
-    p0 = good_new.reshape(-1, 1, 2)
-    '''
-
 
 
 #calcOpticalFlowFarneback
@@ -175,16 +99,21 @@ config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 15)
 config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8,15)
 
 # Start streaming
-
 profile = pipeline.start(config)
 # Getting the depth sensor's depth scale (see rs-align example for explanation)
 depth_sensor= profile.get_device().first_depth_sensor()
 depth_scale = depth_sensor.get_depth_scale()
 print("> Depth Scale is: " , depth_scale)
+# We will be removing the background of objects more than  clipping_distance_in_meters meters away
+clipping_distance = clipping_distance_in_meters / depth_scale
+# Create an align object
+# rs.align allows us to perform alignment of depth frames to others frames
+# The "align_to" is the stream type to which we plan to align depth frames.
 align_to = rs.stream.color
 align = rs.align(align_to)
 
 first_frame = None
+
 
 try:
     while device_bool:
@@ -199,37 +128,57 @@ try:
         if not aligned_depth_frame or not color_frame:
             continue
         #print(start_t)
+
         # depth test
         #colorizer = rs.colorizer()
-        #colorized_depth = np.asanyarray(colorizer.coloqrize(depth_frame).get_data())
+        #colorized_depth = np.asanyarray(colorizer.colorize(depth_frame).get_data())
         # Convert images to numpy arrays
-        depth_image = np.asanyarray(depth_frame.get_data())
+        #depth_image = np.asanyarray(depth_frame.get_data())
+        #color_image = np.asanyarray(color_frame.get_data())
+        depth_image = np.asanyarray(aligned_depth_frame.get_data())
         color_image = np.asanyarray(color_frame.get_data())
+        # Remove background - Set pixels further than clipping_distance to grey
+        grey_color = 153
+        depth_image_3d = np.dstack(
+            (depth_image, depth_image, depth_image))  # depth image is 1 channel, color is 3 channels
+        bg_removed = np.where((depth_image_3d > clipping_distance) | (depth_image_3d <= 0), grey_color, color_image)
+        # Render images
+        depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
+        #images = np.hstack((bg_removed, depth_colormap))
+        cv2.namedWindow('bg_removed', cv2.WINDOW_AUTOSIZE)
+        cv2.imshow('bg_removed', bg_removed)
 
-        aruco_detect(color_image)
-        diff_value = diff(first_frame, color_image)
+        fgmask = fgbg.apply(color_image)
+        back = fgbg.getBackgroundImage()
+
+
+        cv2.imshow('back', back)
+        cv2.namedWindow('fgmask', cv2.WINDOW_AUTOSIZE)
+        cv2.imshow('fgmask', fgmask)
+
+        #diff_value = diff(back,color_image)
+        #diff_value = diff(first_frame, color_image)
         first_frame = color_image
 
-        if diff_value > 20000:
+        if diff_value > diffValue:
             print("start save image")
             # color_image 이미지 저장
-            '''
-            filename = f'cimg%i.jpg' % fileCounter
-            cv2.imwrite(filename, color_image)
+            #filename = f'cimg%i.jpg' % fileCounter
+            #cv2.imwrite(filename, color_image)
             # depth_image 이미미지 저장
-            filename = f'dimg%i.jpg' q% fileCounter
-            cv2.imwrite(filename, depth_image)
+            #filename = f'dimg%i.jpg' % fileCounter
+            #cv2.imwrite(filename, depth_image)
             # depth_colormap 이미지 저장
             # filename = f'd_c_img%i.jpg' % fileCounter
             # cv2.imwrite(filename, depth_colormap)
             # colorized_depth 이미지 저장
             # filename = f'c_d_img%i.jpg' % fileCounter
             # cv2.imwrite(filename, colorized_depth)
-            print('* {filename} saved')
+            #print('*{filename} saved')
             fileCounter += 1
-            '''
-        else:
-            print("stop")
+        #else:
+            #print("stop")
+
         # Apply colormap on depth image (image must be converted to 8-bit per pixel first)
         #depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
         # Stack both images horizontally
