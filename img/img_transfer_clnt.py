@@ -35,6 +35,7 @@ print('Socket Connected')
 while True:
     #Decode the data and generate an image file
     length = recvall(clnt_sock, 16)
+
     StringData = recvall(clnt_sock, int(length))
     data = np.fromstring(StringData, dtype='uint8')
     decode_img = cv2.imdecode(data, 1)
@@ -45,17 +46,16 @@ while True:
 
     key = cv2.waitKey(200)
     if key == ord('q') :
-        clnt_sock.close()
-        print("quit process!")
+        print("Quit the process!")
         break
     elif key == ord('s') :
         if fileCounter % 2 == 0 :
-            print("Save image!")
+            print("Save color image!")
             img_date = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
             filename = img_date+'_color.jpg'	#color 파일생성
             cv2.imwrite(filename, decode_img)
         else:
-            print("Save image!")
+            print("Save depth image!")
             #filename = f'dimg%i.jpg' % fileCounter
             img_date = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
             filename = img_date + '_depth.jpg'
@@ -63,5 +63,4 @@ while True:
     else:
         pass
     fileCounter += 1
-
-
+clnt_sock.close()
