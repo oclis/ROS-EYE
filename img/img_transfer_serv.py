@@ -7,7 +7,9 @@ import copy
 import cv2
 import sys
 import os
+import datetime
 
+active_flag = False
 device_bool = False
 fileCounter = 0
 
@@ -15,19 +17,23 @@ HOST = '192.168.10.100'
 PORT = 9999
 
 clipping_distance_in_meters = 5 #meter
-move_value = 1500
+move_value = 600
 
 #ROI setting (340 x 340)
-x_roi = 205
-y_roi = 110
+x_roi = 55
+y_roi = 90
 w_roi = 340
 h_roi = 340
 
 #Text setting
-FONT_LOCATION = (35,420)
+FONT_LOCATION = (500,420)
 FONT_SIZE = 1
 FONT_SCALE = cv2.FONT_HERSHEY_SIMPLEX
 FONT_COLOR = (0, 0, 255)
+
+FONT_LOCATION_TIME = (255, 20)
+FONT_COLOR_TIME = (255, 255, 255)
+FONT_SCALE_TIME = cv2.FONT_HERSHEY_PLAIN
 
 print("opencv:", cv2.__version__)  # opencv 버전 출력
 realsense_check = os.system("lsusb -d8086:0b07")
@@ -45,7 +51,6 @@ pipeline = rs.pipeline()
 config = rs.config()
 config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 15)
 config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 15)
-
 # Start streaming
 profile = pipeline.start(config)
 
@@ -65,13 +70,8 @@ serv_sock.bind((HOST, PORT))                                                    
 print('Socket bind complete!')
 serv_sock.listen(5)
 print('Socket now listening!')
-conn, addr = serv_sock.accept()
-print('Socket client accepted!')
 
-fgbg = cv2.createBackgroundSubtractorMOG2()
-kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE,(3,3))
-first_frame = None
-
+#기계 작동유무 확인 함수
 def active_check (src1, src2) :
     if src1 is None:
         src1 = src2
@@ -85,14 +85,23 @@ def active_check (src1, src2) :
 
     dst = cv2.absdiff(gray_src1, gray_src2)
     _, dst = cv2.threshold(dst, 25, 255, cv2.THRESH_BINARY)
-    dst_roi = dst[0: 90 , 150: 640]
+    dst_roi = dst[0: 100 , 200: 640]
     move_check = cv2.countNonZero(dst_roi)
-    #print("ROI_move_value :", move_check)
-    return move_check
+    if move_check < 600 and move_check > 0:
+        print("ROI_move_value :", move_check)
+    return dst, move_check
 
 try:
     while device_bool:
-        print('Socket now listening!')
+
+        first_frame = None
+        # 평균 배경
+        height = 480
+        width = 640
+        # acc_gray = np.zeros(shape=(height, width),dtype=np.float32)
+        acc_bgr = np.zeros(shape=(height, width, 3), dtype=np.float32)
+        t = 0
+
         clnt_sock, addr = serv_sock.accept()
         print(str(addr)+' Socket client accepted!')
 
@@ -111,42 +120,46 @@ try:
             depth_a = np.asanyarray(aligned_depth_frame.get_data())  # np = numpy
             color_a = np.asanyarray(color_frame.get_data())
 
-            grey_color = 40
+            #기계 이동 체크
+            dst, move_check = active_check(first_frame, color_a)
 
-            depth_image_3d = np.dstack(
-                (depth_a, depth_a, depth_a))  # depth image is 1 channel, color is 3 channels
-            bg_removed = np.where((depth_image_3d > clipping_distance) | (depth_image_3d < 0), grey_color, color_a)
-            # bg_removed = bg_removed[y_roi: y_roi + h_roi, x_roi: x_roi + w_roi]
-            # Render images
-            depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_a, alpha=0.03), cv2.COLORMAP_JET)
-            #images = np.hstack((bg_removed, depth_colormap))
+            #평균 배경
+            t += 1
+            cv2.accumulate(color_a,acc_bgr)
+            avg_bgr = acc_bgr/t
+            dst_bgr = cv2.convertScaleAbs(avg_bgr)
+            diff_bgr = cv2.absdiff(color_a, dst_bgr)
+            gray_diff = cv2.cvtColor(diff_bgr, cv2.COLOR_BGR2GRAY)
+            gray_diff = cv2.GaussianBlur(gray_diff, (5, 5), 0)
+            #gray_diff = cv2.bilateralFilter(gray_diff, 5 , 75, 75)
+            _, diff_gray = cv2.threshold(gray_diff, 20, 255, cv2.THRESH_BINARY)
 
-            fgmask = fgbg.apply(color_a)
-            fgmask = cv2.morphologyEx(fgmask,cv2.MORPH_OPEN,kernel)
+            no_bg = cv2.bitwise_and(color_a,color_a,mask=diff_gray)
+            no_bg = cv2.bilateralFilter(no_bg, 5, 75, 75)
+            cv2.rectangle(no_bg, (x_roi, y_roi), (x_roi + w_roi, y_roi + h_roi), (255, 255, 255))
 
-            no_bg = cv2.bitwise_or(color_a, color_a, mask=fgmask)
-            cv2.rectangle(no_bg, (x_roi, y_roi), (x_roi+w_roi, y_roi+h_roi), (255, 255, 255) )
-
-            move_check = active_check(first_frame, color_a)
+            #이전프레임에 현재프레임 복사
             first_frame = color_a
 
+            #현재시간표시
+            img_date = datetime.datetime.now().strftime("%Y_%m_%d_%H:%M:%S")
             # 기계 동작 유무
             if move_check > move_value:
                 cv2.putText(no_bg,"Active", FONT_LOCATION, FONT_SCALE, FONT_SIZE, FONT_COLOR)
+                cv2.putText(no_bg, img_date , FONT_LOCATION_TIME, FONT_SCALE_TIME, FONT_SIZE, FONT_COLOR_TIME)
+                active_flag = True
                 #print("> machine activing ")
             else :
                 cv2.putText(no_bg, "STOP", FONT_LOCATION, FONT_SCALE, FONT_SIZE, FONT_COLOR)
+                cv2.putText(no_bg, img_date , FONT_LOCATION_TIME, FONT_SCALE_TIME, FONT_SIZE, FONT_COLOR_TIME)
+                #기계 작동 안할 시 배경 초기화
+                acc_bgr = np.zeros(shape=(height, width, 3), dtype=np.float32)
+                t = 0
+                active_flag = False
                 #print("> machine stop")
 
             #bg_removed = cv2.cvtColor(bg_removed, cv2.COLOR_BGR2GRAY)
-            '''
-            for y in range(0,480) :
-                for x in range(0,640) :
-                    if bg_removed[y, x, 0] < 110 :
-                        bg_removed[y, x, 0] = 0
-                        bg_removed[y, x, 1] = 0
-                        bg_removed[y, x, 2] = 0
-            '''
+
             # Encoding the image and sending data
             encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]  # jpg의 별도 파라미터, 0~100 품질 높을수록 좋음 90설정
             color_result, color_img_encode = cv2.imencode('.jpg', color_a, encode_param)  # encode결과 result에 별도로 저장
