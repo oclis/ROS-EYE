@@ -19,6 +19,7 @@ class ClientSocket:
         self.disconn = Signal() 
 
         self.bConnect = False
+        self.bMode = False
 
          
     def __del__(self):
@@ -59,7 +60,7 @@ class ClientSocket:
 
     def receive(self, client):
         while self.bConnect:            
-            try:
+            try:                                   
                 length = self.recvall( self.client, 16)
                 StringData =  self.recvall(self.client, int(length))
                 data = np.fromstring(StringData, dtype='uint8')
@@ -69,19 +70,34 @@ class ClientSocket:
                 bytes_per_line = ch * w
                 convert_to_Qt_format = QImage(rgb_image.data, w, h, bytes_per_line, QImage.Format_RGB888)
                 p = convert_to_Qt_format.scaled(640, 480, Qt.KeepAspectRatio)
-
-                self.fileCounter += 1
-                if self.fileCounter % 2 == 0 :
-                    continue
                     
-                if int(length) > 0:
-                    self.recv.recv_signal.emit(p)                            
+                self.fileCounter += 1
+                if self.fileCounter % 2 == 0: 
+                    if self.bMode:                  
+                        self.recv.recv_signal.emit(p)  
+                else:
+                    if not self.bMode:                   
+                        self.recv.recv_signal.emit(p)    
+               
+                                              
             except Exception as e:
                 print('Recv() Error :', e)                
                 break
  
         self.stop()
- 
+
+    def changeMode(self):
+
+        if not self.bConnect :
+            print('Has no connect!')
+            return
+        self.bMode = not self.bMode
+        if self.bMode :
+            print('change mode == True')
+        else:
+            print('False')
+
+
     def send(self, msg):
         if not self.bConnect:
             return
