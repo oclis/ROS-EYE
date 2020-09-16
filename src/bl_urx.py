@@ -17,9 +17,9 @@ import ipaddress
 
 from bl_op_server import *
 
-logging.basicConfig(filename='/tmp/binder.log')
-log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
+# logging.basicConfig(filename='/tmp/binder.log')
+# log = logging.getLogger(__name__)
+# log.setLevel(logging.DEBUG)
 
 default_configuration = {
   'robot': {

@@ -1,13 +1,15 @@
 #!/usr/bin/env python3
 
+
+
 import os
-import cv2
+# import cv2
 import bpy
 import math
 import time
 import socket
 import threading
-import numpy as np
+# import numpy as np
 
 from bl_urx_script import *
 from bl_op_data import Bl_Op_Data as bod
@@ -15,7 +17,7 @@ from bl_op_flag import Bl_Op_Flag as bof # ====================> SeonWoo
 
 def URxMoveToPoseOperator(code, cmd1 = 0, cmd2 = 0, cmd3 = 0):
   #ik_target = bpy.data.objects['IK Target']
-  if(code == 0):    #"Home Posistion"
+  if(code == 0):    #"Home Position"
     print("debug : URxMoveToPoseOperator code : 0 , Home")
     bl_Server.set_Off_Teach_Mode()
     bl_Server.move_Home()
@@ -51,18 +53,38 @@ def URxMoveToPoseOperator(code, cmd1 = 0, cmd2 = 0, cmd3 = 0):
     print("debug : URxMoveToPoseOperator code : 6 , PROGRAM_shut_Down")
     bl_Server.shut_Down()
 
-  elif(code == 7):
-    print("debug : ")
+  elif(code == 7):     #왼쪽위에
+    # print("debug : ")
+    print("Left max")
+    bpy.data.objects['ik_control'].location.x = 0.0
+    bpy.data.objects['ik_control'].location.y = 10.0
+    bpy.data.objects['ik_control'].location.z = 8.0
 
-  elif(code == 8):
-    print("debug : ")
+  elif(code == 8):      #왼쪽아래
+    # print("debug : ")
+    print("Left min")
+    bpy.data.objects['ik_control'].location.x = 0.0
+    bpy.data.objects['ik_control'].location.y = 10.0
+    bpy.data.objects['ik_control'].location.z = 2.0
 
-  elif(code == 9):
-    print("debug : ")
+  elif(code == 9):      #오른쪽위에
+    # print("debug : ")
+    print("Right max")
+    bpy.data.objects['ik_control'].location.x = 10.0
+    bpy.data.objects['ik_control'].location.y = 10.0
+    bpy.data.objects['ik_control'].location.z = 8.0
 
-  elif (code == 10):
-    print("debug : ")
+  elif (code == 10):    #오른쪽아래
+    # print("debug : ")
+    print("Right min")
+    bpy.data.objects['ik_control'].location.x = 10.0
+    bpy.data.objects['ik_control'].location.y = 10.0
+    bpy.data.objects['ik_control'].location.z = 2.0
+<<<<<<< HEAD
 
+=======
+    
+>>>>>>> 07adae6d96a2a82abc5addfa4258282f674969d7
   elif (code == 11):
     print("debug : ")
 
@@ -221,11 +243,11 @@ class Bl_Maviz_Server(threading.Thread):
     def show_Image(self):
         while True:
             time.sleep(0.1)
-            if self.xavier_Image_Datas:
-                decode_img = cv2.imdecode(np.fromstring(self.xavier_Image_Datas, dtype='uint8'), 1)  # 320,240
-                resize_img = cv2.resize(decode_img, dsize=(640, 480))  # 640,480
-                cv2.imshow('RealSense-server', resize_img)
-                cv2.waitKey(1)
+            # if self.xavier_Image_Datas:
+            #     decode_img = cv2.imdecode(np.fromstring(self.xavier_Image_Datas, dtype='uint8'), 1)  # 320,240
+            #     resize_img = cv2.resize(decode_img, dsize=(640, 480))  # 640,480
+            #     cv2.imshow('RealSense-server', resize_img)
+            #     cv2.waitKey(1)
 
     def recv_All(self, sock, count):
         buf = b''

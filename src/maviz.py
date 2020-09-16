@@ -183,6 +183,12 @@ class Maviz:
         if event.type == 'F' and event.value == 'PRESS':
             bpy.ops.transform.rotate(value=-0.01, orient_axis='X', orient_type='LOCAL')
 
+            if event.type == 'ONE' and event.value == 'PRESS':
+                if (bof.FLAG_LCTRL_STATUS == True):
+                    print("1")
+                    # bod.data_Switch_Camera_Loc_Rot_Value(6.5, -60, 5.4, 90, 0, 0)
+                    
+
     def curPose(self):
         return self.mover.cur_location
 
