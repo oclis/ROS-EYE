@@ -6,7 +6,7 @@ import numpy as np
 import cv2
 
 class Signal(QObject):  
-    recv_signal = pyqtSignal(QImage)
+    recv_signal = pyqtSignal(np.ndarray)
     disconn_signal = pyqtSignal()
 
 class ClientSocket:
@@ -65,19 +65,14 @@ class ClientSocket:
                 StringData =  self.recvall(self.client, int(length))
                 data = np.fromstring(StringData, dtype='uint8')
                 decode_img = cv2.imdecode(data, 1)
-                rgb_image = cv2.cvtColor(decode_img, cv2.COLOR_BGR2RGB)
-                h, w, ch = rgb_image.shape
-                bytes_per_line = ch * w
-                convert_to_Qt_format = QImage(rgb_image.data, w, h, bytes_per_line, QImage.Format_RGB888)
-                p = convert_to_Qt_format.scaled(640, 480, Qt.KeepAspectRatio)
                     
                 self.fileCounter += 1
                 if self.fileCounter % 2 == 0: 
                     if self.bMode:                  
-                        self.recv.recv_signal.emit(p)  
+                        self.recv.recv_signal.emit(decode_img)  
                 else:
                     if not self.bMode:                   
-                        self.recv.recv_signal.emit(p)    
+                        self.recv.recv_signal.emit(decode_img)    
                
                                               
             except Exception as e:
