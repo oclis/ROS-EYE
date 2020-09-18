@@ -30,9 +30,9 @@ class Ui_ImageDialog(QWidget):
         # 서버 접속관련 설정 부분 #############################
         print('initUI') 
         self.setWindowTitle('Magenta Robotics Inc')
-        self.image_label = QLabel()
-        self.rst_label = QLabel()
-        
+        self.image_label = QLabel() # source image
+        self.rst_label = QLabel() # result image
+        self.f_label = QLabel()  #feature image
         
         # 영상처리 영역 #############################
         grid = QGridLayout()
@@ -170,9 +170,16 @@ class Ui_ImageDialog(QWidget):
         cbox.addWidget(popupbutton)
         cbox.addStretch(1)
         
+        self.f_label.setGeometry(QRect(60, 0, 640, 480))
+        self.f_label.setText("Feature")        
+        self.f_label.setAlignment(Qt.AlignCenter)
+        self.f_label.setWordWrap(False)
+        self.f_label.setObjectName("f_label")
+
         vbox = QVBoxLayout()        
         vbox.addLayout(box)
-        vbox.addLayout(cbox)        
+        vbox.addLayout(cbox)   
+        vbox.addWidget(self.f_label)     
         groupbox.setLayout(vbox)
         return groupbox    
 
@@ -224,6 +231,7 @@ class Ui_ImageDialog(QWidget):
         self.infomsg.clear()
 
     def imgProcess(self):
+        self.f_label.setPixmap(self.convert_cv_qt(self.imgCur))
         self.infomsg.append('영상처리를 시작 합니다. ')       
 
     def saveRecode(self):
