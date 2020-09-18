@@ -1,6 +1,5 @@
 #!/usr/bin/python
-
-import pyrealsense2 as rs
+import pyrealsense2 as rs  # SDK에 엑세스하기에 필요한 파이썬 바인딩 C++을 제공함
 import numpy as np
 import socket
 import time
@@ -8,232 +7,237 @@ import copy
 import cv2
 import sys
 import os
+import datetime
 
-print("opencv:", cv2.__version__)
-
+active_flag = False
 device_bool = False
 fileCounter = 0
-diffValue = 30000
-clipping_distance_in_meters = 0.5  # meter
 
-color_test1 = cv2.imread("2020_09_10_10_31_32_color.jpg")
-depth_test1 = cv2.imread("2020_09_10_10_31_32_depth.jpg")
+HOST = '192.168.10.100'
+PORT = 9999
 
-color_test2 = cv2.imread("2020_09_10_10_31_32_color.jpg")
-depth_test2 = cv2.imread("2020_09_10_10_31_32_depth.jpg")
+clipping_distance_in_meters = 5 #meter
+move_value = 600
 
-#cv2.namedWindow('depth_test1', cv2.WINDOW_AUTOSIZE)
-#cv2.imshow('depth_test1', depth_test1)
+#ROI setting (340 x 340)
+x_roi = 25
+y_roi = 70
+w_roi = 300
+h_roi = 300
 
-depth_t1 = cv2.cvtColor(depth_test1, cv2.COLOR_BGR2GRAY)
+#Text setting
+FONT_LOCATION = (500,420)
+FONT_SIZE = 1
+FONT_SCALE = cv2.FONT_HERSHEY_SIMPLEX
+FONT_COLOR = (0, 0, 255)
 
-print(depth_t1[50, 150])
-for i in range(480):
-    for j in range(640):
-        if depth_t1[i, j] <= 0:
-            depth_t1[i, j] = 255
+FONT_LOCATION_TIME = (255, 20)
+FONT_COLOR_TIME = (255, 255, 255)
+FONT_SCALE_TIME = cv2.FONT_HERSHEY_PLAIN
 
-#cv2.namedWindow('depth_t1', cv2.WINDOW_AUTOSIZE)
-#cv2.imshow('depth_t1', depth_t1)
-
-
-#cv2.namedWindow('depth_test2', cv2.WINDOW_AUTOSIZE)
-#cv2.imshow('depth_test2', depth_test2)
-
+print("opencv:", cv2.__version__)  # opencv 버전 출력
 realsense_check = os.system("lsusb -d8086:0b07")
-if(realsense_check==0):     #device 연결 됐을 경우
+if (realsense_check == 0):  # realsense 가 0이면 usb3.0 연결됨
     device_bool = True
     print("> usb3.0 connect realsense")
-else:
-    device_bool = False     #device 연결 안 됐을 경우
+else:  # 아니면 python3 시스템 exit
+    device_bool = False
     print("> NOT connect realsense ! \n> python3 system exit !!!")
     sys.exit()
 
-#ROI setting
-x_roi = 100
-y_roi = 40
-w_roi = 440
-h_roi = 400
-
-#BackgroundSubtractorMOG2
-fgbg = cv2.createBackgroundSubtractorMOG2(detectShadows=False)
-#fgbg = cv2.createBackgroundSubtractorKNN()
-
-def diff(src1, src2):
-    if src1 is None:
-        src1 = src2
-
-    #prev_image
-    gray_src1 = cv2.cvtColor(src1, cv2.COLOR_BGR2GRAY)
-    gray_src1 = cv2.GaussianBlur(gray_src1, (0, 0), 1.0)
-
-    #current_image
-    gray_src2 = cv2.cvtColor(src2, cv2.COLOR_BGR2GRAY)
-    gray_src2 = cv2.GaussianBlur(gray_src2, (0, 0), 1.0)
-
-    #diff
-    dst = cv2.absdiff(gray_src1, gray_src2)
-    _, dst = cv2.threshold(dst, 25, 255, cv2.THRESH_BINARY)
-
-    # ROI
-    dst_roi = dst[y_roi: y_roi + h_roi, x_roi: x_roi + w_roi]
-    cv2.rectangle(dst, (x_roi, y_roi), (x_roi+w_roi, y_roi+h_roi), (255, 0, 0) )
-    diff_value = cv2.countNonZero(dst_roi)
-    #print(dst.shape)
-    #print(dst.size)
-    #print(dst.dtype)
-    cv2.namedWindow('ROI_diff', cv2.WINDOW_AUTOSIZE)
-    cv2.imshow('ROI_diff', dst)
-
-    # calcOpticalFlowFarneback
-    flow = cv2.calcOpticalFlowFarneback(gray_src1, gray_src2, None, 0.5, 3, 13, 3, 5, 1.1, 0)
-    # print(flow)
-    img = draw_flow(gray_src2, flow)
-    #cv2.namedWindow('img', cv2.WINDOW_AUTOSIZE)
-    #cv2.imshow('img', img)
-    #print(diff_value)
-    return diff_value
-
-
-#calcOpticalFlowFarneback
-def draw_flow(img, flow, step=16):
-    h, w = img.shape[:2]
-    y, x = np.mgrid[step/2:h:step, step/2:w:step].reshape(2, -1).astype(int)
-    fx, fy = flow[y, x].T
-    #print("fx",fx)
-    #print("fy",fy)
-    #print("flow",flow)
-    lines = np.vstack([x, y, x+fx, y+fy]).T.reshape(-1, 2, 2)
-    lines = np.int32(lines + 0.5)
-    vis = cv2.cvtColor(img, cv2.COLOR_GRAY2BGR)
-    cv2.polylines(vis, lines, 0, (0, 255, 255), lineType=cv2.LINE_AA)
-
-    for (x1, y1), (_x2, _y2) in lines:
-        cv2.circle(vis, (x1, y1), 1, (0, 128, 255), -1, lineType=cv2.LINE_AA)
-
-    return vis
-
-print ("> Configure depth and color streams")
+print("> Configure depth and color streams")
 # Configure depth and color streams
-pipeline = rs.pipeline()    #카메라 구성 및 스트리밍, 비전 모듈 트리거링 미치 스레딩 추상화
-config = rs.config()        #파이프 라인 스트림과 장치 선택 및 구성에 대한 필터를 요청
-
-#스트림 유형 및 해상도, 가능한형식, 프레임 속도
+pipeline = rs.pipeline()
+config = rs.config()
 config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 15)
-config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8,15)
-
+config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 15)
 # Start streaming
 profile = pipeline.start(config)
+
 # Getting the depth sensor's depth scale (see rs-align example for explanation)
-depth_sensor= profile.get_device().first_depth_sensor()
-depth_scale = depth_sensor.get_depth_scale()
-print("> Depth Scale is: " , depth_scale)
-# We will be removing the background of objects more than  clipping_distance_in_meters meters away
+depth_sensor = profile.get_device().first_depth_sensor()
+depth_scale = depth_sensor.get_depth_scale()  # 뎁스 센서의 뎁스 스케일 받는 변수 선언
+print("> Depth Scale is: ",depth_scale)  # 뎁스 스케일 출력
 clipping_distance = clipping_distance_in_meters / depth_scale
-# Create an align object
-# rs.align allows us to perform alignment of depth frames to others frames
-# The "align_to" is the stream type to which we plan to align depth frames.
 align_to = rs.stream.color
 align = rs.align(align_to)
 
-first_frame = None
+#Create socket and wait for client connection
+serv_sock = socket.socket(socket.AF_INET,socket.SOCK_STREAM) #소켓 생성
+serv_sock.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+print('Socket created!')
+serv_sock.bind((HOST, PORT))                                                    #소켓 연결 바인드
+print('Socket bind complete!')
+serv_sock.listen(5)
+print('Socket now listening!')
+
+#기계 작동유무 확인 함수
+def active_check (src1, src2) :
+    if src1 is None:
+        src1 = src2
+    # prev_image
+    gray_src1 = cv2.cvtColor(src1, cv2.COLOR_BGR2GRAY)
+    gray_src1 = cv2.GaussianBlur(gray_src1, (0, 0), 1.0)
+    #gray_src1 = cv2.bilateralFilter(gray_src1, 5, 75, 75)
+
+    # current_image
+    gray_src2 = cv2.cvtColor(src2, cv2.COLOR_BGR2GRAY)
+    gray_src2 = cv2.GaussianBlur(gray_src2, (0, 0), 1.0)
+    #gray_src2 = cv2.bilateralFilter(gray_src2, 5, 75, 75)
+
+    color_dst = cv2.absdiff(src1,src2)
+    dst = cv2.absdiff(gray_src1, gray_src2)
+    _, dst = cv2.threshold(dst, 25, 255, cv2.THRESH_BINARY)
+    dst_roi = dst[0: 100 , 200: 640]
+    move_check = cv2.countNonZero(dst_roi)
+    if move_check < 600 and move_check > 0:
+        print("ROI_move_value :", move_check)
+    return dst, move_check, color_dst
 
 
 try:
     while device_bool:
-        start_t = time.time()
-        # Wait for a coherent pair of frames: depth and color
-        frames = pipeline.wait_for_frames()
-        depth_frame = frames.get_depth_frame()  #get_depth_frame = 첫번째 깊이 프레임 검색 프레임 없을 시 빈 프레임 인스턴스 반환
-        aligned_frames = align.process(frames)  #지정된 프레임에서 정렬프로세스 실행 정렬된 프레임 세트 가져옴
-        # Get aligned frames
-        aligned_depth_frame = aligned_frames.get_depth_frame() # aligned_depth_frame is a 640x480 depth image
-        color_frame = aligned_frames.get_color_frame()
-        if not aligned_depth_frame or not color_frame:
-            continue
-        #print(start_t)
 
-        # depth test
-        #colorizer = rs.colorizer()
-        #colorized_depth = np.asanyarray(colorizer.colorize(depth_frame).get_data())
-        # Convert images to numpy arrays
-        #depth_image = np.asanyarray(depth_frame.get_data())
-        #color_image = np.asanyarray(color_frame.get_data())
-        depth_image = np.asanyarray(aligned_depth_frame.get_data())
-        color_image = np.asanyarray(color_frame.get_data())
-        # Remove background - Set pixels further than clipping_distance to grey
-        grey_color = 153
-        depth_image_3d = np.dstack(
-            (depth_image, depth_image, depth_image))  # depth image is 1 channel, color is 3 channels
-        bg_removed = np.where((depth_image_3d > clipping_distance) | (depth_image_3d <= 0), grey_color, color_image)
-        # Render images
-        depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
-        images = np.hstack((bg_removed, depth_colormap))
-        cv2.namedWindow('Align Example', cv2.WINDOW_AUTOSIZE)
-        cv2.imshow('Align Example', images)
+        first_frame = None
+        no_bg_frame = None
+        # 평균 배경
+        height = 480
+        width = 640
+        TH= 15
+        # acc_gray = np.zeros(shape=(height, width),dtype=np.float32)
+        acc_bgr = np.zeros(shape=(height, width, 3), dtype=np.float32)
+        acc_gray = np.zeros(shape=(height, width), dtype=np.float32)
+        t = 0
 
-        fgmask = fgbg.apply(color_image)
-        back = fgbg.getBackgroundImage()
-        #cv2.imshow('back', back)
-        #cv2.namedWindow('fgmask', cv2.WINDOW_AUTOSIZE)
-        #cv2.imshow('fgmask', fgmask)
+        clnt_sock, addr = serv_sock.accept()
+        print(str(addr)+' Socket client accepted!')
 
-        #diff_value = diff(first_frame, color_image)
-        first_frame = color_image
+        while clnt_sock is not None:
+            # Wait for a coherent pair of frames: depth and color
+            frames = pipeline.wait_for_frames()
+            depth_frame = frames.get_depth_frame()  # 뎁스 프레임 받는 변수 선언
+            aligned_frames = align.process(frames)
 
-        '''
-        if diff_value > diffValue:
-            print("start save image")
-            # color_image 이미지 저장
-            filename = f'cimg%i.jpg' % fileCounter
-            cv2.imwrite(filename, color_image)
-            # depth_image 이미미지 저장
-            filename = f'dimg%i.jpg' q% fileCounter
-            cv2.imwrite(filename, depth_image)
-            # depth_colormap 이미지 저장
-            # filename = f'd_c_img%i.jpg' % fileCounter
-            # cv2.imwrite(filename, depth_colormap)
-            # colorized_depth 이미지 저장
-            # filename = f'c_d_img%i.jpg' % fileCounter
-            # cv2.imwrite(filename, colorized_depth)
-            print('* {filename} saved')
-            fileCounter += 1
-        else:
-            print("stop")
-        '''
-        # Apply colormap on depth image (image must be converted to 8-bit per pixel first)
-        #depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_image, alpha=0.03), cv2.COLORMAP_JET)
-        # Stack both images horizontally
-        #images = np.hstack((color_image, depth_colormap))
-        #images = np.hstack((color_image, colorized_depth))
-        # Show images
-        #cv2.namedWindow('RealSense', cv2.WINDOW_AUTOSIZE)
-        #cv2.imshow('RealSense', images)
+            # Get aligned frames
+            aligned_depth_frame = aligned_frames.get_depth_frame()  # aligned_depth_frame is a 640x480 depth image
+            color_frame = aligned_frames.get_color_frame()  # 컬러 프레임 받는 변수 선언
+            if not aligned_depth_frame or not color_frame:  # 지정된 변수내용이 없으면 반복문 continue
+                continue
 
+            depth_a = np.asanyarray(aligned_depth_frame.get_data())  # np = numpy
+            color_a = np.asanyarray(color_frame.get_data())
 
-        key = cv2.waitKey(1)
-        if key == ord('q'):
-            print("quit process!!!")
-            cv2.destroyAllWindows()
-            break
-        elif key == ord('a'):
-            print("start save image")
-            #color_image 이미지 저장
-            filename = f'cimg%i.jpg' % fileCounter
-            cv2.imwrite(filename,color_image)
-            #depth_image 이미미지 저장
-            filename = f'dimg%i.jpg' % fileCounter
-            cv2.imwrite(filename,depth_image)
-            #depth_colormap 이미지 저장
-            #filename = f'd_c_img%i.jpg' % fileCounter
-            #cv2.imwrite(filename, depth_colormap)
-            #colorized_depth 이미지 저장
-            #filename = f'c_d_img%i.jpg' % fileCounter
-            #cv2.imwrite(filename, colorized_depth)
-            print('* {filename} saved')
-            fileCounter += 1
-        else:
-            pass
+            #기계 이동 체크
+            dst, move_check, dst_color = active_check(first_frame, color_a)
+
+            #평균 배경
+            t += 1
+            color_gray = cv2.cvtColor(color_a, cv2.COLOR_BGR2GRAY)
+            color_gray = cv2.bilateralFilter(color_gray, 5, 75, 75)
+
+            #color_gray = cv2.GaussianBlur(color_gray, (0, 0), 1)
+            cv2.accumulate(color_gray,acc_gray)
+            avg_gray = acc_gray/t
+            dst_gray = cv2.convertScaleAbs(avg_gray)
+            diff_gray = cv2.absdiff(color_gray, dst_gray)
+
+            cv2.accumulate(color_a,acc_bgr)
+            avg_bgr = acc_bgr/t
+            dst_bgr = cv2.convertScaleAbs(avg_bgr)
+            diff_bgr = cv2.absdiff(color_a, dst_bgr)
+
+            _, diff_gray = cv2.threshold(diff_gray, 25, 255, cv2.THRESH_BINARY)
+            #diff_gray = cv2.bitwise_not(mask)
+            #mask = cv2.bitwise_and(dst, diff_gray)
+            #no_bg = cv2.bitwise_and(color_a, color_a, mask=diff_gray)
+            db, dg, dr = cv2.split(diff_bgr)
+            ret, bb = cv2.threshold(db, TH, 255, cv2.THRESH_BINARY)
+            ret, bg = cv2.threshold(dg, TH, 255, cv2.THRESH_BINARY)
+            ret, br = cv2.threshold(dr, TH, 255, cv2.THRESH_BINARY)
+
+            bImage = cv2.bitwise_or(bb, bg)
+            bImage = cv2.bitwise_or(br, bImage)
+            kernel = np.ones((5,5), np.uint8)
+            bImage = cv2.erode(bImage, None, 5)
+            bImage = cv2.dilate(bImage, None, 5)
+            bImage = cv2.erode(bImage, None, 7)
+            #bImage = cv2.morphologyEx(bImage, cv2.MORPH_CLOSE, kernel)
+            #bImage = cv2.morphologyEx(bImage, cv2.MORPH_OPEN, kernel)
+            #mask = cv2.bitwise_or(dst,bImage)
+            #mask = cv2.absdiff(dst,bImage)
+            mask = bImage
+            no_bg = cv2.bitwise_and(color_a, color_a, mask=mask)
+            '''
+            bImage = cv2.erode(bImage, None, 5)
+            bImage = cv2.dilate(bImage, None, 5)
+            bImage = cv2.erode(bImage, None, 7)
+            '''
+            #no_bg = cv2.bitwise_and(color_a, color_a, mask=bImage)
+
+            #no_bg = cv2.bilateralFilter(no_bg, 5, 75, 75)
+            ##_, _, no_bg = active_check(no_bg_frame,diff_bgr)
+            ##no_bg_frame = diff_bgr
+            #no_bg = diff_bgr
+            cv2.rectangle(no_bg, (x_roi, y_roi), (x_roi + w_roi, y_roi + h_roi), (255, 255, 255))
+
+            #이전프레임에 현재프레임 복사
+            first_frame = color_a
+
+            #현재시간표시
+            img_date = datetime.datetime.now().strftime("%Y_%m_%d_%H:%M:%S")
+            # 기계 동작 유무
+            if move_check > move_value:
+                cv2.putText(no_bg,"Active", FONT_LOCATION, FONT_SCALE, FONT_SIZE, FONT_COLOR)
+                cv2.putText(no_bg, img_date , FONT_LOCATION_TIME, FONT_SCALE_TIME, FONT_SIZE, FONT_COLOR_TIME)
+                active_flag = True
+                #print("> machine activing ")
+            else :
+                cv2.putText(no_bg, "STOP", FONT_LOCATION, FONT_SCALE, FONT_SIZE, FONT_COLOR)
+                cv2.putText(no_bg, img_date , FONT_LOCATION_TIME, FONT_SCALE_TIME, FONT_SIZE, FONT_COLOR_TIME)
+                #기계 작동 안할 시 배경 초기화
+                acc_bgr = np.zeros(shape=(height, width, 3), dtype=np.float32)
+                acc_gray = np.zeros(shape=(height, width), dtype=np.float32)
+                t = 0
+                active_flag = False
+                #print("> machine stop")
+
+            #bg_removed = cv2.cvtColor(bg_removed, cv2.COLOR_BGR2GRAY)
+
+            # Encoding the image and sending data
+            encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]  # jpg의 별도 파라미터, 0~100 품질 높을수록 좋음 90설정
+            color_result, color_img_encode = cv2.imencode('.jpg', color_a, encode_param)  # encode결과 result에 별도로 저장
+            if color_result == False:
+                print('could not encode image!')
+                quit()
+
+            depth_result, depth_img_encode = cv2.imencode('.jpg', no_bg, encode_param)  # encode결과 result에 별도로 저장
+            if depth_result == False:
+                print('could not encode image!')
+                quit()
+
+            try:
+                color_array_data = np.array(color_img_encode)
+                if color_array_data is None:
+                    print('There is no color img data!')
+                    break
+                color_stringData = color_array_data.tostring()
+                clnt_sock.sendall((str(len(color_stringData))).encode().ljust(16) + color_stringData)
+
+                depth_array_data = np.array(depth_img_encode)
+                if depth_array_data is None :
+                    print('There is no depth img data!')
+                    break
+                depth_stringData = depth_array_data.tostring()
+                clnt_sock.sendall((str(len(depth_stringData))).encode().ljust(16) + depth_stringData)
+
+            except ConnectionResetError as e:
+                print('Disconnected by '+str(addr))
+                break
+
 finally:
-	# Stop streaming
-	pipeline.stop()
+    # Stop streaming
+    pipeline.stop()
+    serv_sock.close()
+
+
+
