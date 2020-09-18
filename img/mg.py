@@ -1,6 +1,7 @@
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import QWidget, QApplication, QLabel,QGridLayout,QCheckBox,QMenu, QVBoxLayout, QHBoxLayout, QGroupBox, QLineEdit,QPushButton, QTextEdit,QComboBox
 from PyQt5.QtGui import QPixmap,QImage
+from PyQt5.QtCore import QDir, Qt,QRect,QSize
 import socket
 import time
 import sys
@@ -9,6 +10,8 @@ from PyQt5.QtCore import pyqtSignal, pyqtSlot, Qt, QThread, QRect
 import numpy as np
 import img_client
 import MysqlController
+import recognizer
+import QMUtil
 
 HOST = '223.171.46.135'
 PORT = 9999
@@ -20,7 +23,10 @@ class Ui_ImageDialog(QWidget):
     def __init__(self):
         super().__init__()
         self.c = img_client.ClientSocket(self)
+        #self.d = MysqlController.MysqlController('172.17.1.153','mgt','aA!12345','maviz')
         self.d = MysqlController.MysqlController('localhost','mgt','aA!12345','maviz')
+        self.f = recognizer.featureMatcher()
+        self.iv = QMUtil.ImageViewer()
         self.initUI()
 
     def __del__(self):
@@ -31,7 +37,7 @@ class Ui_ImageDialog(QWidget):
         print('initUI') 
         self.setWindowTitle('Magenta Robotics Inc')
         self.image_label = QLabel() # source image
-        self.rst_label = QLabel() # result image
+        #self.rst_label = QLabel() # result image
         self.f_label = QLabel()  #feature image
         
         # 영상처리 영역 #############################
@@ -54,7 +60,8 @@ class Ui_ImageDialog(QWidget):
         cb.activated[str].connect(self.onActivatedCombo)
         box.addWidget(label)
         box.addWidget(cb)
-        self.imgCur =  cv2.imread("c.jpg", cv2.IMREAD_COLOR)            
+        self.imgCur =  cv2.imread("c.jpg", cv2.IMREAD_COLOR)  
+        self.imgSrc =  self.imgCur.copy()         
         self.image_label.setGeometry(QRect(110, 0, 640, 480))
         self.image_label.setPixmap(QtGui.QPixmap("c.jpg"))
         self.image_label.setAlignment(Qt.AlignCenter)
@@ -71,19 +78,13 @@ class Ui_ImageDialog(QWidget):
 
     def createResultImage(self):
         groupbox = QGroupBox('Result Image')
-        label = QLabel('결과 영상')
-    
-        self.rst_label.setGeometry(QRect(60, 0, 640, 480))
-        self.rst_label.setText("result")
-        self.rst_label.setPixmap(QtGui.QPixmap("c.jpg"))
-        self.rst_label.setAlignment(Qt.AlignCenter)
-        self.rst_label.setWordWrap(False)
-        self.rst_label.setObjectName("rst_label")
-
+       
+        self.iv.setGeometry(QRect(0, 0, 640, 480))
+        #self.rst_label.setText("result")
         vbox = QVBoxLayout()
-        vbox.addWidget(label)
-        vbox.addWidget(self.rst_label)
+        vbox.addWidget(self.iv)
         groupbox.setLayout(vbox)
+        groupbox.setFixedSize(QSize(680, 520))
         return groupbox
 
     def createInfoGroup(self):
@@ -158,16 +159,19 @@ class Ui_ImageDialog(QWidget):
         box.addWidget(self.btn)
         popupbutton = QPushButton('품종인식 TEST')
         menu = QMenu(self)
-        menu.addAction('First Item',self.test1)
+        menu.addAction('Feature Matching',self.fm)
         menu.addAction('Second Item',self.test2)
         menu.addAction('Third Item',self.test3)
         menu.addAction('Fourth Item',self.test4)
         popupbutton.setMenu(menu)
 
+        self.checkBox1 = QCheckBox("Feature Matching", self)
+        self.checkBox1.stateChanged.connect(self.checkBoxState)
         cbox = QVBoxLayout()
         label = QLabel('조회')
         cbox.addWidget(label)
         cbox.addWidget(popupbutton)
+        cbox.addWidget(self.checkBox1)
         cbox.addStretch(1)
         
         self.f_label.setGeometry(QRect(60, 0, 640, 480))
@@ -203,14 +207,23 @@ class Ui_ImageDialog(QWidget):
 
     def connectSignal(self):
         self.c.recv.recv_signal.connect(self.update_image)
+        self.iv.crop.cut_signal.connect(self.cut_image)
+        self.f.report.msg_signal.connect(self.update_msg)
         self.c.disconn.disconn_signal.connect(self.updateDisconnect)  
         self.infomsg.append('이미지 서버에 접속 했습니다')     
 
     def updateImageLable(self, q_img):          
         self.image_label.setPixmap(q_img)
+        if self.checkBox1.isChecked() == True:
+            self.fm()
+    
+    def updateFeatureLable(self, q_img):          
+        self.f_label.setPixmap(q_img)        
 
-    def sendImage2rst(self):                  
-        self.rst_label.setPixmap(self.convert_cv_qt(self.imgCur))
+    def sendImage2rst(self):     
+        self.iv.setImage(self.convert_cv_qt(self.imgCur))            
+        #self.rst_label.setPixmap(self.convert_cv_qt(self.imgCur))
+        self.imgSrc =  self.imgCur.copy() 
         self.infomsg.append('결과 영상을 업데이트 했습니다')     
 
     def updateDisconnect(self):
@@ -239,14 +252,15 @@ class Ui_ImageDialog(QWidget):
         cc = self.ccode.text()
         pc = self.pcode.text()
         self.d.insert_partname(pn,cc,pc)
-        self.d.insert_partimage(pn,self.imgCur)
+        #self.d.insert_partimage(pn,self.imgCur)
         self.infomsg.append('데이터를 MAVIZ DB에 저장 합니다. ')  
         self.pname.clear()
         self.ccode.clear()
         self.pcode.clear()
 
-    def test1(self):
-        self.infomsg.append('test 1 ')  
+    def fm(self): #feature matching
+        rst = self.f.get_corrected_img( self.imgSrc, self.imgCur)
+        self.iv.setImage(self.convert_cv_qt(rst))   
 
     def test2(self):
         self.infomsg.append('test 2 ')  
@@ -257,6 +271,12 @@ class Ui_ImageDialog(QWidget):
 
     def closeEvent(self, e):
         self.c.stop() 
+
+    def checkBoxState(self):  
+        if self.checkBox1.isChecked() == True:
+            self.infomsg.append('Feature matcing!! checked')  
+        else:
+            self.infomsg.append('Feature matcing!! end')  
 
     def convert_cv_qt(self, frame):
         """Convert from an opencv image to QPixmap"""
@@ -273,6 +293,15 @@ class Ui_ImageDialog(QWidget):
         self.imgCur = cv_img
         qt_img = self.convert_cv_qt(cv_img)
         self.updateImageLable(qt_img)
+
+    def cut_image(self,cv_img):
+        self.imgSrc = cv_img
+        qt_img = self.convert_cv_qt(cv_img)
+        self.updateFeatureLable(qt_img)
+
+    @pyqtSlot(str)
+    def update_msg(self,str):
+         self.infomsg.append(str)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)
