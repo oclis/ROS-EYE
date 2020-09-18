@@ -17,31 +17,19 @@ fileCounter = 0
 HOST = '192.168.10.100'
 PORT = 9999
 
+clipping_distance_in_meters = 4.5 #meter
 
 #ROI setting (340 x 340)
 x_roi = 200
 y_roi = 40
 w_roi = 250
 h_roi = 300
-
-move_value = 50
-
-#mog2 setting
-mog_history = 200
-mog_varTh = 30
-clipping_distance_in_meters = 4.5 #meter
-
-#ROI setting (340 x 340)
-x_roi = 200
-y_roi = 20
-w_roi = 300
-h_roi = 300
-move_value = 600
+move_value = 150
 
 
 #mog2 setting
-mog_history = 250
-mog_varTh = 20
+mog_history = 225
+mog_varTh = 22
 
 #Text setting
 FONT_LOCATION = (25,420)
@@ -50,7 +38,7 @@ FONT_SCALE = cv2.FONT_HERSHEY_SIMPLEX
 FONT_COLOR = (0, 0, 255)
 
 #FONT_LOCATION_TIME = (255, 20)
-FONT_LOCATION_TIME = (450, 420)
+FONT_LOCATION_TIME = (25, 440)
 FONT_COLOR_TIME = (255, 255, 255)
 FONT_SCALE_TIME = cv2.FONT_HERSHEY_PLAIN
 
@@ -77,6 +65,7 @@ profile = pipeline.start(config)
 depth_sensor = profile.get_device().first_depth_sensor()
 depth_scale = depth_sensor.get_depth_scale()  # 뎁스 센서의 뎁스 스케일 받는 변수 선언
 print("> Depth Scale is: ",depth_scale)  # 뎁스 스케일 출력
+clipping_distance = clipping_distance_in_meters / depth_scale
 align_to = rs.stream.color
 align = rs.align(align_to)
 
@@ -96,25 +85,21 @@ def active_check (src1, src2) :
     # prev_image
     gray_src1 = cv2.cvtColor(src1, cv2.COLOR_BGR2GRAY)
     gray_src1 = cv2.GaussianBlur(gray_src1, (0, 0), 1.0)
-    #gray_src1 = cv2.bilateralFilter(gray_src1, 5, 75, 75)
 
     # current_image
     gray_src2 = cv2.cvtColor(src2, cv2.COLOR_BGR2GRAY)
     gray_src2 = cv2.GaussianBlur(gray_src2, (0, 0), 1.0)
-    #gray_src2 = cv2.bilateralFilter(gray_src2, 5, 75, 75)
 
-    color_dst = cv2.absdiff(src1,src2)
     dst = cv2.absdiff(gray_src1, gray_src2)
-    #dst_ocd = open_close_dilate(dst)
     _, dst = cv2.threshold(dst, 15, 255, cv2.THRESH_BINARY)
-    dst_roi = dst[0: 50 , 440: 640]
+    dst_roi = dst[0: 65 , 380: 640]
     move_check = cv2.countNonZero(dst_roi)
-    if move_check < 50 and move_check > 10:
+    if move_check < move_value and move_check > 10:
         print("ROI_move_value :", move_check)
+    #print("ROI_move_value :", move_check)
     return dst, move_check
 
 kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
-#kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (3, 3))
 
 def open_close_dilate(src) :
     dst = cv2.morphologyEx(src, cv2.MORPH_CLOSE, kernel)
@@ -127,7 +112,7 @@ try:
 
         first_frame = None
         # 평균 배경
-        '''
+
         height = 480
         width = 640
         TH= 20
@@ -135,17 +120,11 @@ try:
         acc_bgr = np.zeros(shape=(height, width, 3), dtype=np.float32)
         acc_gray = np.zeros(shape=(height, width), dtype=np.float32)
         t = 0
-        '''
+
         clnt_sock, addr = serv_sock.accept()
         print(str(addr)+' Socket client accepted!')
 
         fgbg = cv2.createBackgroundSubtractorMOG2(history=mog_history, varThreshold=mog_varTh, detectShadows=False)
-
-        #fgbg = cv2.bgsegm.createBackgroundSubtractorGMG(initializationFrames=30,decisionThreshold=20)
-        #fgbg = cv2.bgsegm.createBackgroundSubtractorMOG()
-        #kernel = cv2.getStructuringElement(cv2.MORPH_RECT, (1, 1))
-
-        #kernel = np.ones((5, 5), np.uint8)
 
         while clnt_sock is not None:
             # Wait for a coherent pair of frames: depth and color
@@ -168,52 +147,13 @@ try:
             fgmask = fgbg.apply(color_a)
             fgmask = open_close_dilate(fgmask)
 
-            mask = fgmask
-            no_bg = cv2.bitwise_and(color_a, color_a, mask=mask)
-            #fgmask = cv2.bilateralFilter(fgmask, 5, 75, 75)
-            #fgmask = cv2.GaussianBlur(fgmask, (3, 3), 0)
-
-            fgmask = open_close_dilate(fgmask)
-            '''
-            fgmask = cv2.morphologyEx(fgmask, cv2.MORPH_CLOSE, kernel)
-            fgmask = cv2.morphologyEx(fgmask, cv2.MORPH_OPEN, kernel)
-            fgmask = cv2.dilate(fgmask, kernel)
-            '''
-            #mask = np.ones_like(fgmask)
-            #mask = cv2.bitwise_not(mask)
-            #fgmask = cv2.bitwise_and( fgmask, fgmask ,mask=mask)
-            #_,fgmask = cv2.threshold(fgmask, 220, 255, cv2.THRESH_BINARY)
-
-            '''
-            grey_color = 0
-            depth_image_3d = np.dstack(
-                (depth_a, depth_a, depth_a))  # depth image is 1 channel, color is 3 channels
-            bg_removed = np.where((depth_image_3d > clipping_distance) | (depth_image_3d <= 0), grey_color, color_a)
-            # Render images
-            #depth_colormap = cv2.applyColorMap(cv2.convertScaleAbs(depth_a, alpha=0.03), cv2.COLORMAP_JET)
-            bg_removed = cv2.cvtColor(bg_removed, cv2.COLOR_BGR2GRAY)
-            '''
-            '''
             #평균 배경
             t += 1
-            color_gray = cv2.cvtColor(color_a, cv2.COLOR_BGR2GRAY)
-            color_gray = cv2.bilateralFilter(color_gray, 5, 75, 75)
-
-            #color_gray = cv2.GaussianBlur(color_gray, (0, 0), 1)
-            cv2.accumulate(color_gray,acc_gray)
-            avg_gray = acc_gray/t
-            dst_gray = cv2.convertScaleAbs(avg_gray)
-            diff_gray = cv2.absdiff(color_gray, dst_gray)
-
             cv2.accumulate(color_a,acc_bgr)
             avg_bgr = acc_bgr/t
             dst_bgr = cv2.convertScaleAbs(avg_bgr)
             diff_bgr = cv2.absdiff(color_a, dst_bgr)
 
-            _, diff_gray = cv2.threshold(diff_gray, 25, 255, cv2.THRESH_BINARY)
-            #diff_gray = cv2.bitwise_not(mask)
-            #mask = cv2.bitwise_and(dst, diff_gray)
-            #no_bg = cv2.bitwise_and(color_a, color_a, mask=diff_gray)
             db, dg, dr = cv2.split(diff_bgr)
             ret, bb = cv2.threshold(db, TH, 255, cv2.THRESH_BINARY)
             ret, bg = cv2.threshold(dg, TH, 255, cv2.THRESH_BINARY)
@@ -221,46 +161,22 @@ try:
 
             bImage = cv2.bitwise_or(bb, bg)
             bImage = cv2.bitwise_or(br, bImage)
-            kernel = np.ones((5,5), np.uint8)
-            bImage = cv2.erode(bImage, None, 5)
-            bImage = cv2.dilate(bImage, None, 5)
-            bImage = cv2.erode(bImage, None, 7)
-            #bImage = cv2.morphologyEx(bImage, cv2.MORPH_CLOSE, kernel)
-            #bImage = cv2.morphologyEx(bImage, cv2.MORPH_OPEN, kernel)
-            #mask = cv2.bitwise_or(dst,bImage)
-            #mask = cv2.absdiff(dst,bImage)
-            #mask = bImage
 
-            #mask = cv2.bitwise_or(fgmask,bImage)
-            '''
-            #gray_a = cv2.cvtColor(color_a, cv2.COLOR_BGR2GRAY)
-            #gray_a = cv2.GaussianBlur(gray_a, (0, 0), 1.0)
-            #_, gray_a = cv2.threshold(gray_a, 25, 255, cv2.THRESH_BINARY)
+            bImage = open_close_dilate(bImage)
 
-            #mask = cv2.absdiff(fgmask,gray_a)
-            mask = fgmask
-            no_bg = cv2.bitwise_and(color_a, color_a, mask=mask)
-            '''
-            bImage = cv2.erode(bImage, None, 5)
-            bImage = cv2.dilate(bImage, None, 5)
-            bImage = cv2.erode(bImage, None, 7)
-            '''
-            #no_bg = cv2.bitwise_and(color_a, color_a, mask=bImage)
+            mask = cv2.bitwise_and(fgmask,bImage)
+            no_bg = cv2.bitwise_or(color_a, color_a, mask=mask)
 
-            #no_bg = cv2.bilateralFilter(no_bg, 5, 75, 75)
-            ##_, _, no_bg = active_check(no_bg_frame,diff_bgr)
-            ##no_bg_frame = diff_bgr
-            #no_bg = diff_bgr
-            cv2.rectangle(no_bg, (x_roi, y_roi), (x_roi + w_roi, y_roi + h_roi), (255, 255, 255))
+            #cv2.rectangle(no_bg, (x_roi, y_roi), (x_roi + w_roi, y_roi + h_roi), (255, 255, 255))
 
             #이전프레임에 현재프레임 복사
             first_frame = color_a
-            '''
+            # 기계 작동 안할 시 배경 초기화
             if active_flag != active_flag_old :
                 fgbg = cv2.createBackgroundSubtractorMOG2(history=mog_history, varThreshold=mog_varTh, detectShadows=False)
-            '''
-            if active_flag != active_flag_old :
-                fgbg = cv2.createBackgroundSubtractorMOG2(history=mog_history, varThreshold=mog_varTh, detectShadows=False)
+                acc_bgr = np.zeros(shape=(height, width, 3), dtype=np.float32)
+                acc_gray = np.zeros(shape=(height, width), dtype=np.float32)
+                t = 0
             #현재시간표시
             img_date = datetime.datetime.now().strftime("%Y_%m_%d_%H:%M:%S")
             # 기계 동작 유무
@@ -272,15 +188,10 @@ try:
             else :
                 cv2.putText(no_bg, "STOP", FONT_LOCATION, FONT_SCALE, FONT_SIZE, FONT_COLOR)
                 cv2.putText(no_bg, img_date , FONT_LOCATION_TIME, FONT_SCALE_TIME, FONT_SIZE, FONT_COLOR_TIME)
-                #기계 작동 안할 시 배경 초기화
-                #acc_bgr = np.zeros(shape=(height, width, 3), dtype=np.float32)
-                #acc_gray = np.zeros(shape=(height, width), dtype=np.float32)
-                t = 0
                 active_flag = False
                 #print("> machine stop")
 
             active_flag_old = active_flag
-
 
             # Encoding the image and sending data
             encode_param = [int(cv2.IMWRITE_JPEG_QUALITY), 90]  # jpg의 별도 파라미터, 0~100 품질 높을수록 좋음 90설정
@@ -301,7 +212,6 @@ try:
                     break
                 color_stringData = color_array_data.tostring()
                 clnt_sock.sendall((str(len(color_stringData))).encode().ljust(16) + color_stringData)
-
                 depth_array_data = np.array(depth_img_encode)
                 if depth_array_data is None :
                     print('There is no depth img data!')

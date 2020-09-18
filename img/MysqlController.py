@@ -31,8 +31,8 @@ partname table
 import pymysql
 import sys
 import cv2
-
-
+import numpy as np
+import base64
 
 class MysqlController:
     def __init__(self, host, id, pw, db_name):
@@ -58,12 +58,18 @@ class MysqlController:
 
     def insert_partimage(self, pname, frame):    
         # 이미지 데이터를 업로드 하는 부분이 String으로 바꾸어 주어야 함.
+
         if self.bConnect :
             try:
+                result, e_img = cv2.imencode('.jpg', frame)
+                e_img = np.array(e_img)
+                e_img_array_data = e_img.tostring()
+                e_img_stringData = base64.b64encode(e_img_array_data)
+                e_img_stringData = e_img_stringData.decode()
                 h, w, sz = frame.shape
                 print(h)
                 sql = """INSERT INTO partimage (pid,image,size) VALUES (%s,%s,%s)"""
-                args = (pname,frame,sz)
+                args = (pname,e_img_stringData,sz)
                 self.curs.execute(sql,args)
                 self.conn.commit()
             finally:
@@ -71,4 +77,26 @@ class MysqlController:
                 pass
         else : 
             # send message to parent 
+            print('DB is Not connected!!!1')
+
+    def select_partimage(self, pname):
+        # 이미지 데이터를 업로드 하는 부분이 String으로 바꾸어 주어야 함.
+
+        if self.bConnect :
+            try:
+                sql = """SELECT image FROM partimage WHERE pid = %s"""
+                args = (pname)
+                self.curs.execute(sql,args)
+                rows = self.curs.fetchall()
+                img = rows[0][0]
+                d_img = base64.decodebytes(img)
+                d_img = np.fromstring(d_img,np.uint8)
+                decode_img = cv2.imdecode(d_img, 1)
+
+                return decode_img
+            finally:
+                #self.conn.close()
+                pass
+        else :
+            # send message to parent
             print('DB is Not connected!!!1')
