@@ -1,6 +1,37 @@
+'''
+DB명 : maviz  
+user : mgt
+pass : aA!12345
+
+partname table
++-------+--------------+------+-----+---------+----------------+
+| Field | Type         | Null | Key | Default | Extra          |
++-------+--------------+------+-----+---------+----------------+
+| pid   | int(11)      | NO   | PRI | NULL    | auto_increment |
+| name  | varchar(128) | NO   |     | NULL    |                |
+| ccode | varchar(12)  | YES  |     | NULL    |                |
+| pcode | varchar(12)  | YES  |     | NULL    |                |
+| class | tinyint(4)   | YES  |     | NULL    |                |
+| grade | tinyint(4)   | YES  |     | NULL    |                |
++-------+--------------+------+-----+---------+----------------+
++-------+------------+------+-----+---------+----------------+
+| Field | Type       | Null | Key | Default | Extra          |
++-------+------------+------+-----+---------+----------------+
+| idx   | int(11)    | NO   | PRI | NULL    | auto_increment |
+| pid   | int(11)    | NO   |     | NULL    |                |
+| image | mediumblob | NO   |     | NULL    |                |
+| size  | int(11)    | YES  |     | NULL    |                |
+| code  | tinyint(4) | YES  |     | NULL    |                |
+| grade | tinyint(4) | YES  |     | NULL    |                |
++-------+------------+------+-----+---------+----------------+
+
+
+'''
+
 import pymysql
 import sys
 import cv2
+
 
 
 class MysqlController:
