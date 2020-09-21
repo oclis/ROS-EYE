@@ -13,12 +13,15 @@ import img_client
 import MysqlController
 import recognizer
 import QMUtil
-from recognizer import find_almost_similar_image_locations
+#from recognizer import find_almost_similar_image_locations
+import os
+import datetime
 
 HOST = '223.171.46.135'
 PORT = 9999
 QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
-
+img_date = datetime.datetime.now().strftime("%Y%m%d")
+PATH = '../../img_fursys/' + img_date
 
 class Ui_ImageDialog(QWidget):
     
@@ -30,6 +33,7 @@ class Ui_ImageDialog(QWidget):
         self.f = recognizer.featureMatcher()
         self.iv = QMUtil.ImageViewer()
         self.initUI()
+        self.create_folder(PATH)
 
     def __del__(self):
         self.c.stop()
@@ -63,7 +67,7 @@ class Ui_ImageDialog(QWidget):
         box.addWidget(label)
         box.addWidget(cb)
         self.imgCur =  cv2.imread("c.jpg", cv2.IMREAD_COLOR)  
-        self.imgSrc =  self.imgCur.copy()         
+        #self.imgSrc =  self.imgCur.copy()
         self.image_label.setGeometry(QRect(110, 0, 640, 480))
         self.image_label.setPixmap(QtGui.QPixmap("c.jpg"))
         self.image_label.setAlignment(Qt.AlignCenter)
@@ -259,7 +263,7 @@ class Ui_ImageDialog(QWidget):
         cc = self.ccode.text()
         pc = self.pcode.text()
         self.d.insert_partname(pn,cc,pc)
-        #self.d.insert_partimage(pn,self.imgCur)
+        self.d.insert_partimage(pn,self.imgCur)
         self.infomsg.append('데이터를 MAVIZ DB에 저장 합니다. ')  
         self.pname.clear()
         self.ccode.clear()
@@ -327,6 +331,14 @@ class Ui_ImageDialog(QWidget):
         p = roi_to_Qt_format.scaled(250, 300, Qt.KeepAspectRatio)
         return QPixmap.fromImage(p)
 
+    def create_folder(self,directory):
+        try:
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+                print("폴더 생성 성공")
+        except OSError:
+            print('Error: Creating directory. ' + directory )
+
 # 슬랏  #####################################
     @pyqtSlot(np.ndarray)
     def update_image(self,cv_img):
@@ -348,3 +360,4 @@ if __name__ == '__main__':
     ui = Ui_ImageDialog()
     ui.connectSignal()
     sys.exit(app.exec_())
+

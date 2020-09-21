@@ -67,9 +67,15 @@ class MysqlController:
                 e_img_stringData = base64.b64encode(e_img_array_data)
                 e_img_stringData = e_img_stringData.decode()
                 h, w, sz = frame.shape
-                print(h)
+
+                sql = """SELECT pid FROM partname WHERE name = %s"""
+                args = (pname)
+                self.curs.execute(sql, args)
+                rows = self.curs.fetchall()
+                pid = rows[0][0]
+                print(pid)
                 sql = """INSERT INTO partimage (pid,image,size) VALUES (%s,%s,%s)"""
-                args = (pname,e_img_stringData,sz)
+                args = (pid,e_img_stringData,sz)
                 self.curs.execute(sql,args)
                 self.conn.commit()
             finally:
@@ -84,7 +90,7 @@ class MysqlController:
 
         if self.bConnect :
             try:
-                sql = """SELECT image FROM partimage WHERE pid = %s"""
+                sql = """SELECT image FROM partimage WHERE pid = (SELECT pid FROM partname where name = %s)"""
                 args = (pname)
                 self.curs.execute(sql,args)
                 rows = self.curs.fetchall()
