@@ -13,7 +13,7 @@ import img_client
 import MysqlController
 import recognizer
 import QMUtil
-#from recognizer import find_almost_similar_image_locations
+from recognizer import find_almost_similar_image_locations
 import os
 import datetime
 
@@ -28,8 +28,8 @@ class Ui_ImageDialog(QWidget):
     def __init__(self):
         super().__init__()
         self.c = img_client.ClientSocket(self)
-        #self.d = MysqlController.MysqlController('172.17.1.153','mgt','aA!12345','maviz')
-        self.d = MysqlController.MysqlController('localhost','mgt','aA!12345','maviz')
+        self.d = MysqlController.MysqlController('172.17.0.161','mgt','aA!12345','maviz')
+        #self.d = MysqlController.MysqlController('localhost','mgt','aA!12345','maviz')
         self.f = recognizer.featureMatcher()
         self.iv = QMUtil.ImageViewer()
         self.initUI()
@@ -67,7 +67,7 @@ class Ui_ImageDialog(QWidget):
         box.addWidget(label)
         box.addWidget(cb)
         self.imgCur =  cv2.imread("c.jpg", cv2.IMREAD_COLOR)  
-        #self.imgSrc =  self.imgCur.copy()
+        self.imgSrc =  self.imgCur.copy()
         self.image_label.setGeometry(QRect(110, 0, 640, 480))
         self.image_label.setPixmap(QtGui.QPixmap("c.jpg"))
         self.image_label.setAlignment(Qt.AlignCenter)
@@ -263,7 +263,7 @@ class Ui_ImageDialog(QWidget):
         cc = self.ccode.text()
         pc = self.pcode.text()
         self.d.insert_partname(pn,cc,pc)
-        self.d.insert_partimage(pn,self.imgCur)
+        self.d.insert_partimage(pc,self.imgCur)
         self.infomsg.append('데이터를 MAVIZ DB에 저장 합니다. ')  
         self.pname.clear()
         self.ccode.clear()
@@ -271,12 +271,14 @@ class Ui_ImageDialog(QWidget):
 
     def selectRecode(self):
         pn = self.pname.text()
-        img = self.d.select_partimage(pn)
+        pc = self.pcode.text()
+        img = self.d.select_partimage(pc)
         self.infomsg.append('데이터를 MAVIZ DB에서 조회 합니다. ')
         self.pname.clear()
         self.ccode.clear()
         self.pcode.clear()
-        self.f_label.setPixmap(self.convert_cv_qt(img))
+        #self.f_label.setPixmap(self.convert_cv_qt(img))
+        self.iv.setImage(self.convert_cv_qt(img))
 
     def fm(self): #feature matching
         result = find_almost_similar_image_locations(self.imgSrc,self.imgCur)
