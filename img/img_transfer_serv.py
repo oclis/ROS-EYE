@@ -8,14 +8,22 @@ import cv2
 import sys
 import os
 import datetime
+from time import sleep
 
-active_flag = False
+active_flag = True
 active_flag_old = None
 device_bool = False
+goods_bool = True   #제품있는지 체크
+move_bool = True    #움직임
 fileCounter = 0
+
+goods_state = 'Y'   #default Y / 없을 경우 N
+active_state = 'A'  #default A / 멈춘 경우 S
 
 HOST = '192.168.10.100'
 PORT = 9999
+
+sleep_time = 2.5
 
 clipping_distance_in_meters = 4.5 #meter
 
@@ -26,6 +34,12 @@ w_roi = 250
 h_roi = 300
 move_value = 150
 
+#ROI 물체 유무
+x_roi_goods = 400
+y_roi_goods = 100
+w_roi_goods = 240
+h_roi_goods = 240
+goods_value = 2000
 
 #mog2 setting
 mog_history = 225
@@ -93,9 +107,20 @@ def active_check (src1, src2) :
     dst = cv2.absdiff(gray_src1, gray_src2)
     _, dst = cv2.threshold(dst, 15, 255, cv2.THRESH_BINARY)
     dst_roi = dst[0: 65 , 380: 640]
+    goods_roi = dst[y_roi_goods:y_roi_goods+h_roi_goods, x_roi_goods: x_roi_goods+w_roi_goods]
     move_check = cv2.countNonZero(dst_roi)
     if move_check < move_value and move_check > 10:
         print("ROI_move_value :", move_check)
+    goods_check = cv2.countNonZero(goods_roi)
+
+    if goods_check > goods_value :
+        goods_bool = True
+        goods_state = 'Y'
+    else :
+        goods_bool = False
+        goods_state = 'N'
+        print("goodscheck : "+ str(goods_check))
+
     #print("ROI_move_value :", move_check)
     return dst, move_check
 
@@ -112,7 +137,6 @@ try:
 
         first_frame = None
         # 평균 배경
-
         height = 480
         width = 640
         TH= 20
@@ -162,9 +186,12 @@ try:
             bImage = cv2.bitwise_or(bb, bg)
             bImage = cv2.bitwise_or(br, bImage)
 
-            bImage = open_close_dilate(bImage)
+            #bImage = open_close_dilate(bImage)
+            bImage = cv2.morphologyEx(bImage, cv2.MORPH_OPEN, kernel)
 
             mask = cv2.bitwise_and(fgmask,bImage)
+            #mask = fgmask
+            #mask = bImage
             no_bg = cv2.bitwise_or(color_a, color_a, mask=mask)
 
             #cv2.rectangle(no_bg, (x_roi, y_roi), (x_roi + w_roi, y_roi + h_roi), (255, 255, 255))
@@ -177,18 +204,24 @@ try:
                 acc_bgr = np.zeros(shape=(height, width, 3), dtype=np.float32)
                 acc_gray = np.zeros(shape=(height, width), dtype=np.float32)
                 t = 0
+
+            if active_flag == False :
+                print("machine stop")
+
             #현재시간표시
             img_date = datetime.datetime.now().strftime("%Y_%m_%d_%H:%M:%S")
             # 기계 동작 유무
             if move_check > move_value:
-                cv2.putText(no_bg,"Active", FONT_LOCATION, FONT_SCALE, FONT_SIZE, FONT_COLOR)
-                cv2.putText(no_bg, img_date , FONT_LOCATION_TIME, FONT_SCALE_TIME, FONT_SIZE, FONT_COLOR_TIME)
+                #cv2.putText(no_bg,"Active", FONT_LOCATION, FONT_SCALE, FONT_SIZE, FONT_COLOR)
+                #cv2.putText(no_bg, img_date , FONT_LOCATION_TIME, FONT_SCALE_TIME, FONT_SIZE, FONT_COLOR_TIME)
                 active_flag = True
+                active_state = 'A'
                 #print("> machine activing ")
             else :
-                cv2.putText(no_bg, "STOP", FONT_LOCATION, FONT_SCALE, FONT_SIZE, FONT_COLOR)
-                cv2.putText(no_bg, img_date , FONT_LOCATION_TIME, FONT_SCALE_TIME, FONT_SIZE, FONT_COLOR_TIME)
+                #cv2.putText(no_bg, "STOP", FONT_LOCATION, FONT_SCALE, FONT_SIZE, FONT_COLOR)
+                #cv2.putText(no_bg, img_date , FONT_LOCATION_TIME, FONT_SCALE_TIME, FONT_SIZE, FONT_COLOR_TIME)
                 active_flag = False
+                active_state = 'S'
                 #print("> machine stop")
 
             active_flag_old = active_flag
@@ -206,22 +239,28 @@ try:
                 quit()
 
             try:
+                #if active_flag == True :
+                state = active_state+"@"+goods_state
+                state = state.encode()
                 color_array_data = np.array(color_img_encode)
                 if color_array_data is None:
                     print('There is no color img data!')
                     break
                 color_stringData = color_array_data.tostring()
-                clnt_sock.sendall((str(len(color_stringData))).encode().ljust(16) + color_stringData)
+                clnt_sock.sendall(state+(str(len(color_stringData))).encode().ljust(16) + color_stringData)
                 depth_array_data = np.array(depth_img_encode)
                 if depth_array_data is None :
                     print('There is no depth img data!')
                     break
                 depth_stringData = depth_array_data.tostring()
-                clnt_sock.sendall((str(len(depth_stringData))).encode().ljust(16) + depth_stringData)
+                clnt_sock.sendall(state+(str(len(depth_stringData))).encode().ljust(16) + depth_stringData )
 
             except ConnectionResetError as e:
                 print('Disconnected by '+str(addr))
                 break
+            #print("sleep start")
+            sleep(sleep_time)
+            #print("sleep end")
 
 finally:
     # Stop streaming
