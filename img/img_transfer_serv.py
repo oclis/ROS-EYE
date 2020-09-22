@@ -39,7 +39,7 @@ x_roi_goods = 400
 y_roi_goods = 100
 w_roi_goods = 240
 h_roi_goods = 240
-goods_value = 2000
+goods_value = 200
 
 #mog2 setting
 mog_history = 225
@@ -113,16 +113,10 @@ def active_check (src1, src2) :
         print("ROI_move_value :", move_check)
     goods_check = cv2.countNonZero(goods_roi)
 
-    if goods_check > goods_value :
-        goods_bool = True
-        goods_state = 'Y'
-    else :
-        goods_bool = False
-        goods_state = 'N'
-        print("goodscheck : "+ str(goods_check))
+
 
     #print("ROI_move_value :", move_check)
-    return dst, move_check
+    return dst, move_check,goods_check
 
 kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
 
@@ -166,7 +160,7 @@ try:
             color_a = np.asanyarray(color_frame.get_data())
 
             #기계 이동 체크
-            dst, move_check = active_check(first_frame, color_a)
+            dst, move_check,goods_check = active_check(first_frame, color_a)
 
             fgmask = fgbg.apply(color_a)
             fgmask = open_close_dilate(fgmask)
@@ -223,6 +217,14 @@ try:
                 active_flag = False
                 active_state = 'S'
                 #print("> machine stop")
+
+            if goods_check > goods_value:
+                goods_bool = True
+                goods_state = 'Y'
+            else:
+                goods_bool = False
+                goods_state = 'N'
+                print("goods_check : " + str(goods_check))
 
             active_flag_old = active_flag
 
