@@ -56,7 +56,7 @@ class MysqlController:
             # send message to parent 
             print('DB is Not connected!!!1')
 
-    def insert_partimage(self, pname, frame):    
+    def insert_partimage(self, pcode, frame):
         # 이미지 데이터를 업로드 하는 부분이 String으로 바꾸어 주어야 함.
 
         if self.bConnect :
@@ -68,8 +68,9 @@ class MysqlController:
                 e_img_stringData = e_img_stringData.decode()
                 h, w, sz = frame.shape
 
-                sql = """SELECT pid FROM partname WHERE name = %s"""
-                args = (pname)
+                #sql = """SELECT pid FROM partname WHERE name = %s"""
+                sql = """SELECT pid FROM partname WHERE pcode = %s"""
+                args = (pcode)
                 self.curs.execute(sql, args)
                 rows = self.curs.fetchall()
                 pid = rows[0][0]
@@ -85,13 +86,14 @@ class MysqlController:
             # send message to parent 
             print('DB is Not connected!!!1')
 
-    def select_partimage(self, pname):
+    def select_partimage(self, pcode):
         # 이미지 데이터를 업로드 하는 부분이 String으로 바꾸어 주어야 함.
 
         if self.bConnect :
             try:
-                sql = """SELECT image FROM partimage WHERE pid = (SELECT pid FROM partname where name = %s)"""
-                args = (pname)
+                #sql = """SELECT image FROM partimage WHERE pid = (SELECT pid FROM partname where name = %s)"""
+                sql = """SELECT image FROM partimage WHERE pid = (SELECT pid FROM partname where pcode = %s)"""
+                args = (pcode)
                 self.curs.execute(sql,args)
                 rows = self.curs.fetchall()
                 img = rows[0][0]
