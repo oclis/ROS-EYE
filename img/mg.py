@@ -367,6 +367,8 @@ class Ui_ImageDialog(QWidget):
         self.iv.setImage(self.convert_cv_qt(self.imgSrc))
         #return fname
 
+
+
 # 슬랏  #####################################
     @pyqtSlot(np.ndarray)
     def update_image(self,cv_img):
@@ -374,7 +376,8 @@ class Ui_ImageDialog(QWidget):
         qt_img = self.convert_cv_qt(cv_img)
         self.updateImageLable(qt_img)
 
-    def cut_image(self,cv_img):
+    @pyqtSlot(np.ndarray, int, int)
+    def cut_image(self,cv_img, h, w):
         self.imgSrc = cv_img
         qt_img = self.convert_cv_qt(cv_img)
         self.updateFeatureLable(qt_img)

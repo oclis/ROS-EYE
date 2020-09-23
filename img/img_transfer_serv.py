@@ -23,27 +23,37 @@ active_state = 'A'  #default A / 멈춘 경우 S
 HOST = '192.168.10.100'
 PORT = 9999
 
+width = 1280
+height = 720
+fps = 30
+
 #sleep_time = 2.5
 time = 0
+time_val = 2
 clipping_distance_in_meters = 4.5 #meter
+#ROI 전체 사진 짜르기
+roi_x = 450
+roi_y = 0
+roi_w = 720
+roi_h = 720
 
 #ROI setting (340 x 340)
 x_roi = 200
 y_roi = 40
 w_roi = 250
 h_roi = 300
-move_value = 150
+move_value = 250
 
 #ROI 물체 유무
 x_roi_goods = 400
 y_roi_goods = 100
 w_roi_goods = 240
 h_roi_goods = 240
-goods_value = 500
+goods_value = 700
 
 #mog2 setting
 mog_history = 225
-mog_varTh = 22
+mog_varTh = 15
 
 #Text setting
 FONT_LOCATION = (25,420)
@@ -70,11 +80,10 @@ print("> Configure depth and color streams")
 # Configure depth and color streams
 pipeline = rs.pipeline()
 config = rs.config()
-config.enable_stream(rs.stream.depth, 640, 480, rs.format.z16, 15)
-config.enable_stream(rs.stream.color, 640, 480, rs.format.bgr8, 15)
+config.enable_stream(rs.stream.depth, width, height, rs.format.z16, fps)
+config.enable_stream(rs.stream.color, width, height, rs.format.bgr8, fps)
 # Start streaming
 profile = pipeline.start(config)
-
 # Getting the depth sensor's depth scale (see rs-align example for explanation)
 depth_sensor = profile.get_device().first_depth_sensor()
 depth_scale = depth_sensor.get_depth_scale()  # 뎁스 센서의 뎁스 스케일 받는 변수 선언
@@ -105,16 +114,13 @@ def active_check (src1, src2) :
     gray_src2 = cv2.GaussianBlur(gray_src2, (0, 0), 1.0)
 
     dst = cv2.absdiff(gray_src1, gray_src2)
-    _, dst = cv2.threshold(dst, 15, 255, cv2.THRESH_BINARY)
-    dst_roi = dst[0: 65 , 380: 640]
-    goods_roi = dst[y_roi_goods:y_roi_goods+h_roi_goods, x_roi_goods: x_roi_goods+w_roi_goods]
+    _, dst_th = cv2.threshold(dst, 15, 255, cv2.THRESH_BINARY)
+    dst_roi = dst_th[0: 40 , 0: 360]
+    goods_roi = dst_th[y_roi_goods:y_roi_goods+h_roi_goods, x_roi_goods: x_roi_goods+w_roi_goods]
     move_check = cv2.countNonZero(dst_roi)
     if move_check < move_value and move_check > 10:
         print("ROI_move_value :", move_check)
     goods_check = cv2.countNonZero(goods_roi)
-
-
-
     #print("ROI_move_value :", move_check)
     return dst, move_check,goods_check
 
@@ -123,7 +129,9 @@ kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
 def open_close_dilate(src) :
     dst = cv2.morphologyEx(src, cv2.MORPH_CLOSE, kernel)
     dst = cv2.morphologyEx(dst, cv2.MORPH_OPEN, kernel)
+
     dst = cv2.dilate(dst, kernel)
+
     return dst
 
 try:
@@ -131,12 +139,12 @@ try:
 
         first_frame = None
         # 평균 배경
-        height = 480
-        width = 640
+        a_h = 720
+        a_w = 720
         TH= 20
         # acc_gray = np.zeros(shape=(height, width),dtype=np.float32)
-        acc_bgr = np.zeros(shape=(height, width, 3), dtype=np.float32)
-        acc_gray = np.zeros(shape=(height, width), dtype=np.float32)
+        acc_bgr = np.zeros(shape=(a_h, a_w, 3), dtype=np.float32)
+        acc_gray = np.zeros(shape=(a_h, a_w), dtype=np.float32)
         t = 0
 
         clnt_sock, addr = serv_sock.accept()
@@ -159,15 +167,19 @@ try:
             depth_a = np.asanyarray(aligned_depth_frame.get_data())  # np = numpy
             color_a = np.asanyarray(color_frame.get_data())
 
+            color_a = color_a[roi_y:roi_y+roi_h,roi_x:roi_x+roi_w]
+
             #기계 이동 체크
             dst, move_check,goods_check = active_check(first_frame, color_a)
 
             fgmask = fgbg.apply(color_a)
             fgmask = open_close_dilate(fgmask)
 
+            time += 1
+            '''
             #평균 배경
             t += 1
-            time += 1
+
             cv2.accumulate(color_a,acc_bgr)
             avg_bgr = acc_bgr/t
             dst_bgr = cv2.convertScaleAbs(avg_bgr)
@@ -181,23 +193,33 @@ try:
             bImage = cv2.bitwise_or(bb, bg)
             bImage = cv2.bitwise_or(br, bImage)
 
+            bImage = cv2.erode(bImage, None, 5)
+            bImage = cv2.dilate(bImage, None, 5)
+            bImage = cv2.erode(bImage, None, 7)
             #bImage = open_close_dilate(bImage)
-            bImage = cv2.morphologyEx(bImage, cv2.MORPH_OPEN, kernel)
+            #bImage = cv2.morphologyEx(bImage, cv2.MORPH_OPEN, kernel)
 
-            mask = cv2.bitwise_and(fgmask,bImage)
-            #mask = fgmask
+
+            mask = cv2.bitwise_or(fgmask,bImage)
+            '''
+
+            mask = fgmask
             #mask = bImage
-            no_bg = cv2.bitwise_or(color_a, color_a, mask=mask)
 
+            no_bg = cv2.bitwise_and(color_a, color_a, mask=mask)
+            # 이전프레임에 현재프레임 복사
+            first_frame = color_a
+
+
+            #no_bg = no_bg[0:600,200:1100]
             #cv2.rectangle(no_bg, (x_roi, y_roi), (x_roi + w_roi, y_roi + h_roi), (255, 255, 255))
 
-            #이전프레임에 현재프레임 복사
-            first_frame = color_a
+
             # 기계 작동 안할 시 배경 초기화
             if active_flag != active_flag_old :
                 fgbg = cv2.createBackgroundSubtractorMOG2(history=mog_history, varThreshold=mog_varTh, detectShadows=False)
-                acc_bgr = np.zeros(shape=(height, width, 3), dtype=np.float32)
-                acc_gray = np.zeros(shape=(height, width), dtype=np.float32)
+                acc_bgr = np.zeros(shape=(a_h, a_w, 3), dtype=np.float32)
+                acc_gray = np.zeros(shape=(a_h, a_w), dtype=np.float32)
                 t = 0
 
             if active_flag == False :
@@ -225,7 +247,8 @@ try:
             else:
                 goods_bool = False
                 goods_state = 'N'
-                print("goods_check : " + str(goods_check))
+                if goods_check != 0 :
+                    print("goods_check : " + str(goods_check))
 
             active_flag_old = active_flag
 
@@ -242,8 +265,7 @@ try:
                 quit()
 
             try:
-                if time == 2 :
-                    #if active_flag == True :
+                if time == time_val :
                     state = active_state+"@"+goods_state
                     state = state.encode()
                     color_array_data = np.array(color_img_encode)
@@ -271,6 +293,5 @@ finally:
     # Stop streaming
     pipeline.stop()
     serv_sock.close()
-
 
 

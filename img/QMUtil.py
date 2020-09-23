@@ -6,7 +6,7 @@ import cv2
 import numpy as np
 
 class Signal(QObject):  
-    cut_signal = pyqtSignal(np.ndarray)
+    cut_signal = pyqtSignal(np.ndarray,int,int)
 
 class ImageViewer(QLabel):
     def __init__(self):
@@ -15,6 +15,7 @@ class ImageViewer(QLabel):
         pixmap = QPixmap(600, 480)
         self.setPixmap(pixmap)
 
+        self.first_x, self.first_y = None, None
         self.last_x, self.last_y = None, None
         self.pen_color = QColor('#000000')        
         self.scaleFactor = 0.0
@@ -28,6 +29,7 @@ class ImageViewer(QLabel):
 
         self.createActions()
         self.show()
+
 
     def setImage(self, q_img):        
         self.setPixmap(q_img)
@@ -107,8 +109,9 @@ class ImageViewer(QLabel):
 
 
     def mousePressEvent (self, eventQMouseEvent):
-        self.originQPoint = self.mapFrom(self, eventQMouseEvent.pos()) 
-        # print ("Label coord: ", self.originQPoint)
+        self.originQPoint = self.mapFrom(self, eventQMouseEvent.pos())
+        self.first_x = int(eventQMouseEvent.x())
+        self.first_y = int(eventQMouseEvent.y())
         self.currentQRubberBand = QRubberBand(QRubberBand.Rectangle, self)
         self.currentQRubberBand.setGeometry(QRect(self.originQPoint, QSize()))
         self.currentQRubberBand.show()
@@ -119,7 +122,6 @@ class ImageViewer(QLabel):
         self.y = int(eventQMouseEvent.y())
         text1 = str(self.x)
         text2 = str(self.y)
-
         p = self.mapToGlobal(eventQMouseEvent.pos())
         #QToolTip.showText(eventQMouseEvent.pos() , "X: "+text1+" "+"Y: "+text2,self)
         QToolTip.showText(p, "X: "+text1+" "+"Y: "+text2,self)
@@ -128,6 +130,8 @@ class ImageViewer(QLabel):
             self.currentQRubberBand.setGeometry(QRect(self.originQPoint, eventQMouseEvent.pos()).normalized() & self.pixmap().rect())
 
     def mouseReleaseEvent (self, eventQMouseEvent):
+        self.last_x = int(eventQMouseEvent.x())
+        self.last_y = int(eventQMouseEvent.y())
         self.currentQRubberBand.hide()
         currentQRect = self.currentQRubberBand.geometry()
         self.currentQRubberBand.deleteLater()
@@ -138,5 +142,11 @@ class ImageViewer(QLabel):
         #arr = np.fromstring(s, dtype=np.uint8).reshape((size.height(), size.width(), cropQPixmap.depth() // 8))
         #new_image = Image.fromarray(array)
         cropQPixmap.save('output.png') 
-        img = cv2.imread("output.png", cv2.IMREAD_COLOR)  
-        self.crop.cut_signal.emit(img) 
+        img = cv2.imread("output.png", cv2.IMREAD_COLOR)
+        h, w = self.cut_imgSize()
+        self.crop.cut_signal.emit(img, h, w)
+
+    def cut_imgSize (self) :
+        h = abs(self.last_y - self.first_y)
+        w = abs(self.last_x - self.first_x)
+        return h,w
