@@ -30,6 +30,7 @@ class Ui_ImageDialog(QWidget):
         super().__init__()
         self.c = img_client.ClientSocket(self)
         self.d = MysqlController.MysqlController('172.17.0.161','mgt','aA!12345','maviz')
+        #self.d = MysqlController.MysqlController('172.17.1.153','mgt','aA!12345','maviz')
         #self.d = MysqlController.MysqlController('localhost','mgt','aA!12345','maviz')
         self.f = recognizer.featureMatcher()
         self.iv = QMUtil.ImageViewer()
@@ -275,7 +276,7 @@ class Ui_ImageDialog(QWidget):
         cc = self.ccode.text()
         pc = self.pcode.text()
         self.d.insert_partname(pn,cc,pc)
-        self.d.insert_partimage(pc,self.imgCur)
+        self.d.insert_partimage(pc,self.imgSrc)
         self.infomsg.append('데이터를 MAVIZ DB에 저장 합니다. ')  
         self.pname.clear()
         self.ccode.clear()
@@ -284,13 +285,13 @@ class Ui_ImageDialog(QWidget):
     def selectRecode(self):
         pn = self.pname.text()
         pc = self.pcode.text()
-        img = self.d.select_partimage(pc)
+        self.imgSrc = self.d.select_partimage(pc)
         self.infomsg.append('데이터를 MAVIZ DB에서 조회 합니다. ')
         self.pname.clear()
         self.ccode.clear()
         self.pcode.clear()
         #self.f_label.setPixmap(self.convert_cv_qt(img))
-        self.iv.setImage(self.convert_cv_qt(img))
+        self.iv.setImage(self.convert_cv_qt(self.imgSrc))
 
     def fm(self): #feature matching
         result = find_almost_similar_image_locations(self.imgSrc,self.imgCur)

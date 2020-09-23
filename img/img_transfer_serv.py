@@ -23,8 +23,8 @@ active_state = 'A'  #default A / 멈춘 경우 S
 HOST = '192.168.10.100'
 PORT = 9999
 
-sleep_time = 2.5
-
+#sleep_time = 2.5
+time = 0
 clipping_distance_in_meters = 4.5 #meter
 
 #ROI setting (340 x 340)
@@ -167,6 +167,7 @@ try:
 
             #평균 배경
             t += 1
+            time += 1
             cv2.accumulate(color_a,acc_bgr)
             avg_bgr = acc_bgr/t
             dst_bgr = cv2.convertScaleAbs(avg_bgr)
@@ -241,27 +242,29 @@ try:
                 quit()
 
             try:
-                #if active_flag == True :
-                state = active_state+"@"+goods_state
-                state = state.encode()
-                color_array_data = np.array(color_img_encode)
-                if color_array_data is None:
-                    print('There is no color img data!')
-                    break
-                color_stringData = color_array_data.tostring()
-                clnt_sock.sendall(state+(str(len(color_stringData))).encode().ljust(16) + color_stringData)
-                depth_array_data = np.array(depth_img_encode)
-                if depth_array_data is None :
-                    print('There is no depth img data!')
-                    break
-                depth_stringData = depth_array_data.tostring()
-                clnt_sock.sendall(state+(str(len(depth_stringData))).encode().ljust(16) + depth_stringData )
+                if time == 2 :
+                    #if active_flag == True :
+                    state = active_state+"@"+goods_state
+                    state = state.encode()
+                    color_array_data = np.array(color_img_encode)
+                    if color_array_data is None:
+                        print('There is no color img data!')
+                        break
+                    color_stringData = color_array_data.tostring()
+                    clnt_sock.sendall(state+(str(len(color_stringData))).encode().ljust(16) + color_stringData)
+                    depth_array_data = np.array(depth_img_encode)
+                    if depth_array_data is None :
+                        print('There is no depth img data!')
+                        break
+                    depth_stringData = depth_array_data.tostring()
+                    clnt_sock.sendall(state+(str(len(depth_stringData))).encode().ljust(16) + depth_stringData )
 
+                    time = 0
             except ConnectionResetError as e:
                 print('Disconnected by '+str(addr))
                 break
             #print("sleep start")
-            sleep(sleep_time)
+            #sleep(sleep_time)
             #print("sleep end")
 
 finally:
