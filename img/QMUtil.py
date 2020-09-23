@@ -120,7 +120,9 @@ class ImageViewer(QLabel):
         text1 = str(self.x)
         text2 = str(self.y)
 
-        QToolTip.showText(eventQMouseEvent.pos() , "X: "+text1+" "+"Y: "+text2,self)
+        p = self.mapToGlobal(eventQMouseEvent.pos())
+        #QToolTip.showText(eventQMouseEvent.pos() , "X: "+text1+" "+"Y: "+text2,self)
+        QToolTip.showText(p, "X: "+text1+" "+"Y: "+text2,self)
         # print ('mouse QToolTip 1') 전체장에서의 위젯 시작점의 좌표가 오리진 포인트가 되어야 함.
         if self.currentQRubberBand.isVisible():
             self.currentQRubberBand.setGeometry(QRect(self.originQPoint, eventQMouseEvent.pos()).normalized() & self.pixmap().rect())

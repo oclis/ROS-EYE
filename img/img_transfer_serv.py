@@ -39,7 +39,7 @@ x_roi_goods = 400
 y_roi_goods = 100
 w_roi_goods = 240
 h_roi_goods = 240
-goods_value = 200
+goods_value = 500
 
 #mog2 setting
 mog_history = 225

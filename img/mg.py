@@ -3,6 +3,7 @@ from PyQt5.QtWidgets import QWidget, QApplication, QLabel,QGridLayout,QCheckBox,
      QGroupBox, QLineEdit, QPushButton, QTextEdit,QComboBox
 from PyQt5.QtGui import QPixmap,QImage,QColor
 from PyQt5.QtCore import QDir, Qt,QRect,QSize
+from PyQt5.QtWidgets import QFileDialog
 import socket
 import time
 import sys
@@ -21,7 +22,7 @@ HOST = '223.171.46.135'
 PORT = 9999
 QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
 img_date = datetime.datetime.now().strftime("%Y%m%d")
-PATH = '../../img_fursys/' + img_date
+PATH = '../../../img_fursys/' + img_date
 
 class Ui_ImageDialog(QWidget):
     
@@ -119,10 +120,20 @@ class Ui_ImageDialog(QWidget):
         self.infomsg.setFixedHeight(350)
         self.infomsg.setStyleSheet("background-color: black; border: 1px solid gray;") 
         self.infomsg.setTextColor(QColor(255,255,0))
+
         self.sendmsg = QLineEdit()
+
+        i_box = QHBoxLayout()
         self.sendbtn = QPushButton('이미지 선택')
         self.sendbtn.setAutoDefault(True)
         self.sendbtn.clicked.connect(self.sendImage2rst)
+
+        self.loadbtn = QPushButton('이미지 열기')
+        self.loadbtn.setAutoDefault(True)
+        self.loadbtn.clicked.connect(self.pushButtonClicked)
+        i_box.addWidget(self.sendbtn)
+        i_box.addWidget(self.loadbtn)
+
         self.imgProc = QPushButton('영상 필터 처리')
         self.imgProc.clicked.connect(self.imgProcess)  
 
@@ -133,7 +144,8 @@ class Ui_ImageDialog(QWidget):
         cbox.addWidget(label)
         cbox.addWidget(self.infomsg)
         cbox.addWidget(self.sendmsg)
-        cbox.addWidget(self.sendbtn)
+        #cbox.addWidget(self.sendbtn)
+        cbox.addLayout(i_box)
         cbox.addWidget(self.imgProc)
         cbox.addWidget(self.clearbtn)
         cbox.addStretch(1)
@@ -340,6 +352,19 @@ class Ui_ImageDialog(QWidget):
                 print("폴더 생성 성공")
         except OSError:
             print('Error: Creating directory. ' + directory )
+
+    def pushButtonClicked(self) :
+        fname = QFileDialog.getOpenFileName(self)
+        #self.label.setText(fname[0])
+        img_path = fname[0]
+        fname_list = img_path.split('/')
+        #print(fname_list)
+        img_name = fname_list[4] + "/" + fname_list[5]
+        self.infomsg.append(img_name)
+        self.imgSrc = cv2.imread(img_path)
+        self.infomsg.append("이미지 사이즈 : " +  str(self.imgSrc.shape))
+        self.iv.setImage(self.convert_cv_qt(self.imgSrc))
+        #return fname
 
 # 슬랏  #####################################
     @pyqtSlot(np.ndarray)

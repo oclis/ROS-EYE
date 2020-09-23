@@ -7,7 +7,7 @@ import cv2
 import datetime
 import os
 img_date = datetime.datetime.now().strftime("%Y%m%d")
-PATH = '../../img_fursys/' + img_date
+PATH = '../../../img_fursys/' + img_date
 
 class Signal(QObject):  
     recv_signal = pyqtSignal(np.ndarray)
@@ -73,8 +73,8 @@ class ClientSocket:
                 state_list = states.split('@')
                 action_state = state_list[0]
                 goods_state = state_list[1]
-                print("action state :" + action_state)
-                print("good state : " + goods_state)
+                #print("action state :" + action_state)
+                #print("good state : " + goods_state)
                 data = np.fromstring(StringData, dtype='uint8')
                 decode_img = cv2.imdecode(data, 1)
                 img_date = datetime.datetime.now().strftime("%H_%M_%S")
