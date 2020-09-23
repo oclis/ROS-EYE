@@ -83,13 +83,13 @@ class ClientSocket:
                 if self.fileCounter % 2 == 0:
                     if self.bMode:                  
                         self.recv.recv_signal.emit(decode_img)
-                        filename = img_date + '_color.jpg'  # color 파일생성
+                        filename = img_date + '_depth.jpg'  # depth 파일생성
                         if action_state == 'A' and goods_state == 'Y' :
                             cv2.imwrite(os.path.join(PATH,filename), decode_img)
                 else:
                     if not self.bMode:                   
                         self.recv.recv_signal.emit(decode_img)
-                        filename = img_date + '_depth.jpg'  # depth 파일생성
+                        filename = img_date + '_color.jpg'  # color 파일생성
                         if action_state == 'A' and goods_state == 'Y':
                             cv2.imwrite(os.path.join(PATH,filename), decode_img)
 
