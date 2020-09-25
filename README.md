@@ -66,20 +66,28 @@ you should consider upgrading via the
 
 ### 키보드
 
-로컬 축 기준 카메라 시점 변환  
+로컬 축 기준 카메라 시점 변환 및 로봇이동  
  y 　z  
 ↑↗  
 ▣ → x  
 
-H : 기본 위치로 이동  
-W : +z방향 이동  
-S : -z방향 이동  
-D : +x방향 이동  
-A : -x방향 이동  
-Q : y축 기준 +방향 회전  
-E : y축 기준 -방향 회전  
-R : x축 기준 +방향 회전  
-F : x축 기준 -방향 회전  
+* 카메라  
+1 : 기본 위치로 이동  
+2 : 우상측 사선방향  
+3 : 우측 측면  
+4 : 좌상측 사선방향  
+5 : 좌측 측면
+* 로봇  
+Numpad 8 : +y  
+Numpad 5 : -y  
+Numpad 6 : +x  
+Numpad 4 : -x  
+Numpad 7 : +z  
+Numpad 9 : -z  
+'I' : +x회전 (Clockwise = '+')  
+'K' : -x회전  
+'J' : +y회전  
+'L' : -y회전  
 
 ### 메뉴판
 
