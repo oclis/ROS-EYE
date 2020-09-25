@@ -71,23 +71,23 @@ you should consider upgrading via the
 ↑↗  
 ▣ → x  
 
-* 카메라
+* 카메라  
 1 : 기본 위치로 이동  
 2 : 우상측 사선방향  
 3 : 우측 측면  
 4 : 좌상측 사선방향  
 5 : 좌측 측면
-* 로봇
-Numpad 8 : +y
-Numpad 5 : -y
-Numpad 6 : +x
-Numpad 4 : -x
-Numpad 7 : +z
-Numpad 9 : -z
-'I' : +x회전 (Clockwise = '+')
-'K' : -x회전
-'J' : +y회전
-'L' : -y회전
+* 로봇  
+Numpad 8 : +y  
+Numpad 5 : -y  
+Numpad 6 : +x  
+Numpad 4 : -x  
+Numpad 7 : +z  
+Numpad 9 : -z  
+'I' : +x회전 (Clockwise = '+')  
+'K' : -x회전  
+'J' : +y회전  
+'L' : -y회전  
 
 ### 메뉴판
 
