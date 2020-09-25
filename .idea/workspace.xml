@@ -2,7 +2,12 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="bc654a33-d178-4b50-86f4-b3742927238f" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/src/MavizHandler.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/MavizHandler.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blender/UR5_Handler.blend" beforeDir="false" afterPath="$PROJECT_DIR$/blender/UR5_Handler.blend" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blender/UR5_Handler.blend1" beforeDir="false" afterPath="$PROJECT_DIR$/blender/UR5_Handler.blend1" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/IkMover.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/IkMover.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/bl_ui_draw_pose.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/bl_ui_draw_pose.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/maviz.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/maviz.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />

@@ -12,7 +12,7 @@ from mathutils import Euler
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from bpy.types import Operator
 
-from bl_ui_label import * 
+from bl_ui_label import *
 from bl_ui_button import *
 from bl_ui_checkbox import *
 from bl_ui_slider import *
@@ -22,6 +22,7 @@ from bl_ui_drag_panel import *
 from bl_op_data import Bl_Op_Data as bod
 from bl_op_flag import Bl_Op_Flag as bof
 from bl_ui_draw_pose import Bl_Ui_Draw_Pose as budp
+from bl_op_server import URxMoveToPoseOperator, URxConfigChange
 
 from IkMover import IKMover
 
@@ -80,32 +81,54 @@ class Maviz:
         self.drag_offset_y = 0
        
         self.is_drag = False
-        self.is_rotation = False  # mouse tracking mode 
+        self.is_rotation = False # mouse tracking mode
 
+        self.command_for_key_type = {
+            'J': IKMover.CMD_LEFT,
+            'L': IKMover.CMD_RIGHT,
+            'I': IKMover.CMD_UP,
+            'K': IKMover.CMD_DOWN,
+            'NUMPAD_1' : IKMover.CMD_NUM_1,
+            'NUMPAD_3' : IKMover.CMD_NUM_3,
+            'NUMPAD_4' : IKMover.CMD_NUM_4,
+            'NUMPAD_5': IKMover.CMD_NUM_5,
+            'NUMPAD_6' : IKMover.CMD_NUM_6,
+            'NUMPAD_7' : IKMover.CMD_NUM_7,
+            'NUMPAD_8' : IKMover.CMD_NUM_8,
+            'NUMPAD_9' : IKMover.CMD_NUM_9,
+        }
         self.action_for_key_state = {
             'PRESS': self.mover.start_command,
             'RELEASE': self.mover.stop_command,
         }
-        self.TPListCount = 0 # name count
         print('MAVIZ created')
 
+        # bod.data_Set_Pose(bod.poseobj[0]) # 200824
+        # bod.data_Set_Pose(bod.poseobj[1])
+        # bod.data_Set_Pose(bod.poseobj[2])
+
         self.urManualControlFlag = False
-        self.urManualControlMoveValue = 0.1
+        self.urManualControlMoveValue = 0.01
         self.urMoveTimeLists = []
         self.urMoveRadiusLists = []
         self.urMoveTime = 0  # ur 이동 시간 값 저장 디폴트 0
         self.urMoveRadius = 0  # ur 이동 반지름 값 저장 디폴트 0
-        self._urChangePoseY = 8
+        self._urChangePoseY = 0.01
 
     def setMover(self, location, rotation):
-        self.mover._setLocation(location[0],location[1],location[2])
-        self.mover._setRotate(rotation[0],rotation[1],rotation[2])
+        try:
+            # print("\nlocation : ", location)
+            # print("rotation : ",rotation, "\n")
+            self.mover._setLocation(location[0], location[1], location[2])
+            self.mover._setRotate(rotation[0], rotation[1], rotation[2])
+        except Exception as e:
+            print("setMover : ", e)
 
     def update(self, time_delta):
         self.mover.update(time_delta)
 
     def set_event(self, event, context):
-        if event.type == 'P' and event.value == 'PRESS':
+        if event.type == 'R' and event.value == 'PRESS':
             if self.is_rotation:
                 print('rotation off')
                 self.is_rotation = False
@@ -115,9 +138,9 @@ class Maviz:
 
         if event.type == 'MOUSEMOVE':
             if self.is_drag:
-                self.x = (event.mouse_x - self.drag_offset_x) / 2000
-                self.z = self._urChangePoseY
-                self.y = (event.mouse_y - self.drag_offset_y) / 2000
+                self.x = (event.mouse_x - self.drag_offset_x) / 20000
+                self.z = 0 # self.mover.bound_location[1]
+                self.y = (event.mouse_y - self.drag_offset_y) / 20000
                 # print('cur x=',self.x,' y=',self.y)
                 if self.x > 0.5 or self.y > 0.5:
                     self.is_drag = False
@@ -140,48 +163,60 @@ class Maviz:
                     self.drag_offset_x =  event.mouse_x
                     self.drag_offset_y =  event.mouse_y
                     area = bpy.context.window_manager.windows[0].screen.areas[0]
+                    #print('IK location = ',self.mover.bound_location)
                     viewport = area.regions[0]
                     if viewport is not None:
                         pass
+                        #print('region ', viewport.x,viewport.y,viewport.width,viewport.height)
+                        #region3D = context.space_data.region_3d
+                        #loc = region_2d_to_location_3d(viewport, region3D, (event.mouse_x, event.mouse_y), (0, 0, 0))
+                        #print('press',self.drag_offset_x,' ', self.drag_offset_y,' loc =',loc)
+                    #    self.mover.bound_location = loc
 
                 elif event.value == 'RELEASE':
                     self.is_drag = False
+
+                    #print('release')
                     self.mover.stop_command(IKMover.CMD_MOVE)
-                    if self.is_rotation: # roation mode
+                    if self.is_rotation:   # roation mode
                         self.item._set_rotation(self.mover.cur_roatation)
                     else: # axis move mode
                         self.item._set_new_pos(self.mover.cur_location)
-                
-        if event.type == 'RIGHTMOUSE':
+
+        if event.type == 'RIGHTMOUSE' or event.type == 'NUMPAD_0':
             if event.value == 'PRESS':
+                print("self.mover.cur_location : ", self.mover.cur_location, "self.mover.cur_roatation : ", self.mover.cur_roatation)
                 budp.draw_Ui_Ur_Add_Pose(self.mover.cur_location, self.mover.cur_roatation)
 
-        if event.type == 'H' and event.value == 'PRESS':
-            bod.data_Switch_Camera_Loc_Rot_Value(6.5, -60, 5.4, 90, 0, 0)
+        if event.type == 'ONE' and event.value == 'PRESS':
+            #bod.data_Switch_Camera_Loc_Rot_Value(0.09822, -3.724, 0.683, 90, 0, 0)
+            bod.data_Switch_Camera_Loc_Rot_Value(0.17039, -3.54293, 0.66801, 90, 0, 0)
 
-        if event.type == 'W' and event.value == 'PRESS':
-            bpy.ops.transform.translate(value=(0, 0, -1), orient_type='LOCAL')
+        if event.type == 'TWO' and event.value == 'PRESS':
+            bod.data_Switch_Camera_Loc_Rot_Value(2.68753, -1.96311, 3.67556, 50.4, 0, 44)
 
-        if event.type == 'S' and event.value == 'PRESS':
-            bpy.ops.transform.translate(value=(0, 0, 1), orient_type='LOCAL')
+        if event.type == 'THREE' and event.value == 'PRESS':
+            bod.data_Switch_Camera_Loc_Rot_Value(4.60415, 0.55412, 2.69870, 66.8, 0, 90)
 
-        if event.type == 'D' and event.value == 'PRESS':
-            bpy.ops.transform.translate(value=(1, 0, 0), orient_type='LOCAL')
+        if event.type == 'FOUR' and event.value == 'PRESS':
+            bod.data_Switch_Camera_Loc_Rot_Value(-3.02668, -1.35379, 3.77938, 50, 0, -62)
 
-        if event.type == 'A' and event.value == 'PRESS':
-            bpy.ops.transform.translate(value=(-1, 0, 0), orient_type='LOCAL')
+        if event.type == 'FIVE' and event.value == 'PRESS':
+            bod.data_Switch_Camera_Loc_Rot_Value(-3.94804, 0.31245, 2.39620, 66.8, 0, -90)
 
-        if event.type == 'Q' and event.value == 'PRESS':
-            bpy.ops.transform.rotate(value=0.01, orient_axis='Y', orient_type='LOCAL')
+        if event.type == 'NUMPAD_PERIOD':
+            if event.value == 'PRESS':
+                self.urManualControlFlag = True
+                print(self.urManualControlFlag)
 
-        if event.type == 'E' and event.value == 'PRESS':
-            bpy.ops.transform.rotate(value=-0.01, orient_axis='Y', orient_type='LOCAL')
+        if event.type in self.command_for_key_type:
+            action = self.action_for_key_state[event.value]
+            action(self.command_for_key_type[event.type])
 
-        if event.type == 'R' and event.value == 'PRESS':
-            bpy.ops.transform.rotate(value=0.01, orient_axis='X', orient_type='LOCAL')
-
-        if event.type == 'F' and event.value == 'PRESS':
-            bpy.ops.transform.rotate(value=-0.01, orient_axis='X', orient_type='LOCAL')
+    def MavizdelPoseToBl(self):
+        budp.delPose()
+        self.MavizTPoseLists = []
+        self.TPListCount = 0
 
     def curPose(self):
         return self.mover.cur_location
