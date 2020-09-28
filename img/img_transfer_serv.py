@@ -26,8 +26,6 @@ countOfImagesToGrab = 10
 # The bandwidth used by a FireWire camera device can be limited by adjusting the packet size.
 maxCamerasToUse = 2
 
-from time import sleep
-
 active_flag = True
 active_flag_old = True
 device_bool = False
@@ -40,15 +38,20 @@ active_state = 'A'  #default A / 멈춘 경우 S
 HOST = '192.168.10.100'
 PORT = 9999
 
-#sleep_time = 2.5
 time = 0
-time_val = 2
+time_val = 4
 
-#ROI 전체 사진 짜르기
+#ROI 전체 사진 짜르기 camera A 1280 x 620
 roi_x = 0
 roi_y = 0
 roi_w = 1280
-roi_h = 650
+roi_h = 620
+
+#ROI 전체 사진 짜르기 camera B 1110 x 690
+b_x = 125
+b_y = 0
+b_w = 1235
+b_h = 690
 
 #ROI 기계 작동 유무
 move_value = 0
@@ -59,11 +62,11 @@ x_roi_goods = 640
 y_roi_goods = 50
 w_roi_goods = 640
 h_roi_goods = 640
-goods_value = 250
+goods_value = 300
 
 #mog2 setting
-mog_history = 250
-#mog_varTh = 15
+mog_history = 400
+mog_varTh = 16
 
 #Text setting
 FONT_LOCATION = (25,420)
@@ -109,12 +112,16 @@ def active_check (src1, src2) :
 #kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (3, 3))
 kernel3 = np.ones((3,3),np.uint8)
 kernel5 = np.ones((5,5),np.uint8)
+kernel7 = np.ones((7,7),np.uint8)
 kernel11 = np.ones((11,11),np.uint8)
 
 def open_close_dilate(src) :
     dst = cv2.morphologyEx(src, cv2.MORPH_CLOSE, kernel11)
+    #dst = cv2.morphologyEx(src, cv2.MORPH_CLOSE, kernel11)
     dst = cv2.morphologyEx(dst, cv2.MORPH_OPEN, kernel5)
-    dst = cv2.dilate(dst, kernel3, iterations=3)
+    #dst = cv2.morphologyEx(dst, cv2.MORPH_OPEN, kernel5)
+    #dst = cv2.dilate(dst, kernel3, iterations=3)
+    dst = cv2.dilate(dst, kernel3,iterations=2)
     return dst
 
 # returns a frame that is the average of all the provided frames
@@ -123,8 +130,6 @@ def bg_average(average, images,count):
     average = average / count
     average = np.uint8(average)
     return average
-
-
 
 # Create socket and wait for client connection
 serv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # 소켓 생성
@@ -183,8 +188,8 @@ try:
         clnt_sock, addr = serv_sock.accept()
         print(str(addr)+' Socket client accepted!')
 
-        #fgbg = cv2.createBackgroundSubtractorMOG2(history=mog_history, varThreshold=mog_varTh, detectShadows=False)
-        fgbg = cv2.createBackgroundSubtractorMOG2(history=mog_history, detectShadows=False)
+        fgbg = cv2.createBackgroundSubtractorMOG2(history=mog_history, varThreshold=mog_varTh, detectShadows=False)
+        #fgbg = cv2.createBackgroundSubtractorMOG2(history=mog_history, detectShadows=False)
         while clnt_sock is not None:
             # Wait for a coherent pair of frames: depth and color
             grabResult = cameras.RetrieveResult(5000, pylon.TimeoutHandling_ThrowException)
@@ -224,7 +229,7 @@ try:
                 elif cameraContextValue < 2:
                     img1 = cv2.resize(img,dsize=(1280,720))
                     color_b = img1
-                    #color_b = color_b[roi_y:roi_y + roi_h, roi_x:roi_x + roi_w]
+                    color_b = color_b[b_y: b_h, b_x: b_w]
                     #img1 = cv2.resize(img, (0, 0), fx=0.25, fy=0.25)
                     # print( cameraContextValue, img1.shape )
                     #cv2.imshow('title-1', img1)
@@ -238,14 +243,52 @@ try:
                     if time % 2 == 0 :
                         dst, move_check, goods_check = active_check(first_frame, color_a)
                         first_frame = color_a
+                        if goods_check > goods_value:
+                            goods_bool = True
+                            goods_state = 'Y'
+                            active_flag = True
+                            active_state = 'A'
+                        else:
+                            goods_bool = False
+                            goods_state = 'N'
+                            if goods_check != 0:
+                                print("goods_check : " + str(goods_check))
+                            active_flag = False
+                            active_state = 'S'
 
                     fgmask = fgbg.apply(color_a)
                     fgmask = open_close_dilate(fgmask)
+                    '''
+                    # 평균 배경
+                    t += 1
 
+                    cv2.accumulate(color_a, acc_bgr)
+                    avg_bgr = acc_bgr / t
+                    dst_bgr = cv2.convertScaleAbs(avg_bgr)
+                    diff_bgr = cv2.absdiff(color_a, dst_bgr)
+
+                    db, dg, dr = cv2.split(diff_bgr)
+                    ret, bb = cv2.threshold(db, TH, 255, cv2.THRESH_BINARY)
+                    ret, bg = cv2.threshold(dg, TH, 255, cv2.THRESH_BINARY)
+                    ret, br = cv2.threshold(dr, TH, 255, cv2.THRESH_BINARY)
+
+                    bImage = cv2.bitwise_or(bb, bg)
+                    bImage = cv2.bitwise_or(br, bImage)
+
+                    bImage = cv2.erode(bImage, None, 5)
+                    bImage = cv2.dilate(bImage, None, 5)
+                    bImage = cv2.erode(bImage, None, 7)
+                    # bImage = open_close_dilate(bImage)
+                    # bImage = cv2.morphologyEx(bImage, cv2.MORPH_OPEN, kernel)
+
+                    mask = cv2.bitwise_or(fgmask, bImage)
+                    '''
                     mask = fgmask
                     # mask = bImage
 
                     no_bg = cv2.bitwise_and(color_a, color_a, mask=mask)
+                    #no_bg = mask
+
                     #no_bg = no_bg[roi_y:roi_y + roi_h, roi_x:roi_x + roi_w]
                     #color_a = color_a[roi_y:roi_y + roi_h, roi_x:roi_x + roi_w]
 
@@ -255,8 +298,8 @@ try:
                     #if active_flag == False :
                     #    print("machine stop")
                     # 현재시간표시
-                    img_date = datetime.datetime.now().strftime("%Y_%m_%d_%H:%M:%S")
-                    cv2.putText(no_bg, img_date , FONT_LOCATION_TIME, FONT_SCALE_TIME, FONT_SIZE, FONT_COLOR_TIME)
+                    #img_date = datetime.datetime.now().strftime("%Y_%m_%d_%H:%M:%S")
+                    #cv2.putText(no_bg, img_date , FONT_LOCATION_TIME, FONT_SCALE_TIME, FONT_SIZE, FONT_COLOR_TIME)
 
                     '''
                     # 기계 동작 유무
@@ -269,22 +312,13 @@ try:
                         active_state = 'S'
                         # print("> machine stop")
                     '''
-                    if goods_check > goods_value:
-                        goods_bool = True
-                        goods_state = 'Y'
-                        active_flag = True
-                        active_state = 'A'
-                    else:
-                        goods_bool = False
-                        goods_state = 'N'
-                        if goods_check != 0:
-                            print("goods_check : " + str(goods_check))
-                        active_flag = False
-                        active_state = 'S'
+
                     # 기계 작동 안할 시 배경 초기화
                     if active_flag != active_flag_old:
                         # fgbg = cv2.createBackgroundSubtractorMOG2(history=mog_history, varThreshold=mog_varTh, detectShadows=False)
-                        fgbg = cv2.createBackgroundSubtractorMOG2(history=mog_history, detectShadows=False)
+                        #fgbg = cv2.createBackgroundSubtractorMOG2(history=mog_history, detectShadows=False)
+                        acc_bgr = np.zeros(shape=(roi_h, roi_w, 3), dtype=np.float32)
+                        t = 0
 
                     active_flag_old = active_flag
 
@@ -297,34 +331,52 @@ try:
                     if color_result == False:
                         print('could not encode image!')
                         quit()
+
+                    colorb_result, colorb_img_encode = cv2.imencode('.jpg', color_b, encode_param)  # encode결과 result에 별도로 저장
+                    if colorb_result == False:
+                        print('could not encode image!')
+                        quit()
+
                     depth_result, depth_img_encode = cv2.imencode('.jpg', no_bg, encode_param)  # encode결과 result에 별도로 저장
                     #depth_result, depth_img_encode = cv2.imencode('.jpg', color_b, encode_param)  # encode결과 result에 별도로 저장
                     if depth_result == False:
                         print('could not encode image!')
                         quit()
+
                     try:
                         if time == time_val :
                             state = active_state+"@"+goods_state
-                            state = state.encode()
+                            #state = state.encode()
                             color_array_data = np.array(color_img_encode)
                             if color_array_data is None:
                                 print('There is no color img data!')
                                 break
-                            #color_state = state+"@C"
-                            #color_state = color_state.encode()
+                            color_state = state+"@CA"
+                            color_state = color_state.encode()
                             color_stringData = color_array_data.tostring()
-                            size_c = len(color_stringData)
-                            #print(size_c)
-                            #clnt_sock.sendall(state+(str(len(color_stringData))).encode().ljust(16) + color_stringData)
-                            clnt_sock.sendall(state+(str(len(color_stringData))).encode().ljust(16) + color_stringData)
+                            #size_c = len(color_stringData)
+                            #print("size : " ,size_c)
+                            clnt_sock.sendall(color_state + (str(len(color_stringData))).encode().ljust(16) + color_stringData)
+
+                            #color_b
+                            colorb_array_data = np.array(colorb_img_encode)
+                            if colorb_array_data is None:
+                                print('There is no color img data!')
+                                break
+                            colorb_state = state + "@CB"
+                            colorb_state = colorb_state.encode()
+                            colorb_stringData = colorb_array_data.tostring()
+                            clnt_sock.sendall(colorb_state+(str(len(colorb_stringData))).encode().ljust(16) + colorb_stringData)
+
+                            #depth
                             depth_array_data = np.array(depth_img_encode)
                             if depth_array_data is None :
                                 print('There is no depth img data!')
                                 break
-                            #depth_state = state + "@D"
-                            #depth_state = depth_state.encode()
+                            depth_state = state + "@DA"
+                            depth_state = depth_state.encode()
                             depth_stringData = depth_array_data.tostring()
-                            clnt_sock.sendall(state+(str(len(depth_stringData))).encode().ljust(16) + depth_stringData )
+                            clnt_sock.sendall(depth_state+(str(len(depth_stringData))).encode().ljust(16) + depth_stringData )
                             time = 0
                     except ConnectionResetError as e:
                         print('Disconnected by '+str(addr))
