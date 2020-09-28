@@ -26,7 +26,9 @@ class ClientSocket:
         self.disconn = Signal()
 
         self.bConnect = False
-        self.bMode = False
+        #self.bMode = False
+        self.bMode = "ColorA"
+        self.create_folder(PATH)
 
     def __del__(self):
         self.stop()
@@ -66,21 +68,56 @@ class ClientSocket:
         return buf
 
     def receive(self, client):
+        #time = 0
+        #timeVal = 3
         while self.bConnect:
             try:
-                states = self.recvall(self.client, 3)
+                #time +=1
+                states = self.recvall(self.client, 6)
                 length = self.recvall(self.client, 16)
                 StringData = self.recvall(self.client, int(length))
                 states = states.decode()
                 state_list = states.split('@')
                 action_state = state_list[0]
                 goods_state = state_list[1]
-                # print("action state :" + action_state)
-                # print("good state : " + goods_state)
+                camera_state = state_list[2]
+                #print("action state :" + action_state)
+                #print("camera_state  :" + camera_state)
+                #print("good state : " + goods_state)
                 data = np.fromstring(StringData, dtype='uint8')
                 decode_img = cv2.imdecode(data, 1)
                 img_time = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
 
+                #if time == timeVal :
+                if action_state == 'A' and goods_state == 'Y':
+                    if camera_state == "CA" :
+                        filename = img_time + '_colorA.jpg'
+                        PATHA = PATH + "/colorA"
+                        self.create_folder(PATHA)
+                        cv2.imwrite(os.path.join(PATHA, filename), decode_img)
+                        #print("camera_state : " + camera_state)
+                    elif camera_state == "CB":
+                        filename = img_time + '_colorB.jpg'
+                        PATHB = PATH + "/colorB"
+                        self.create_folder(PATHB)
+                        cv2.imwrite(os.path.join(PATHB, filename), decode_img)
+                    else :
+                        pass
+                    #time = 0
+
+                if camera_state == "CA" :
+                    #if not self.bMode:
+                    if self.bMode =="ColorA":
+                        self.recv.recv_signal.emit(decode_img)
+                elif camera_state == 'CB':
+                    if self.bMode =="ColorB":
+                        self.recv.recv_signal.emit(decode_img)
+                    #pass
+                elif camera_state == 'DA':
+                    #if self.bMode:
+                    if self.bMode == "Depth":
+                        self.recv.recv_signal.emit(decode_img)
+                '''
                 self.fileCounter += 1
                 if self.fileCounter % 2 == 0:
                     if self.bMode:
@@ -94,23 +131,34 @@ class ClientSocket:
                         filename = img_time + '_color.jpg'  # color 파일생성
                         if action_state == 'A' and goods_state == 'Y':
                             cv2.imwrite(os.path.join(PATH, filename), decode_img)
-
+                '''
             except Exception as e:
                 print('Recv() Error :', e)
                 break
 
         self.stop()
 
-    def changeMode(self):
-
+    #def changeMode(self):
+    def changeMode(self, mode):
         if not self.bConnect:
             print('Has no connect!')
             return
+        if mode == "ColorA" :
+            self.bMode = "ColorA"
+            print('change mode == ColorA')
+        elif mode == "ColorB" :
+            self.bMode = "ColorB"
+            print('change mode == ColorB')
+        elif mode == "Depth" :
+            self.bMode = "Depth"
+            print('change mode == Depth')
+        '''
         self.bMode = not self.bMode
         if self.bMode:
             print('change mode == True')
         else:
             print('False')
+        '''
 
     def send(self, msg):
         if not self.bConnect:
@@ -119,3 +167,11 @@ class ClientSocket:
             self.client.send(msg.encode())
         except Exception as e:
             print('send() Error :', e)
+
+    def create_folder(self,directory):
+        try:
+            if not os.path.exists(directory):
+                os.makedirs(directory)
+                print("폴더 생성 성공")
+        except OSError:
+            print('Error: Creating directory. ' + directory )
