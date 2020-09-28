@@ -25,7 +25,7 @@ img_date = datetime.datetime.now().strftime("%Y%m%d")
 PATH = '../../../img_fursys/' + img_date
 
 class Ui_ImageDialog(QWidget):
-    
+
     def __init__(self):
         super().__init__()
         self.c = img_client.ClientSocket(self)
@@ -35,19 +35,19 @@ class Ui_ImageDialog(QWidget):
         self.f = recognizer.featureMatcher()
         self.iv = QMUtil.ImageViewer()
         self.initUI()
-        self.create_folder(PATH)
+        #self.create_folder(PATH)
 
     def __del__(self):
         self.c.stop()
 
     def initUI(self):
         # 서버 접속관련 설정 부분 #############################
-        print('initUI') 
+        print('initUI')
         self.setWindowTitle('Magenta Robotics Inc')
         self.image_label = QLabel() # source image
         #self.rst_label = QLabel() # result image
         self.f_label = QLabel()  #feature image
-        
+
         # 영상처리 영역 #############################
         grid = QGridLayout()
         grid.addWidget(self.createInputImage(), 0, 0)
@@ -56,19 +56,21 @@ class Ui_ImageDialog(QWidget):
         grid.addWidget(self.createPushButtonGroup(), 1, 1)
         self.setLayout(grid)
         self.show()
-       
+
 
     def createInputImage(self):
         groupbox = QGroupBox('Input Image from Line')
         label = QLabel('실시간영상')
         box = QHBoxLayout()
         cb = QComboBox(self)
-        cb.addItem('Color')
+        #cb.addItem('Color')
+        cb.addItem('ColorA')
+        cb.addItem('ColorB')
         cb.addItem('Depth')
         cb.activated[str].connect(self.onActivatedCombo)
         box.addWidget(label)
         box.addWidget(cb)
-        self.imgCur =  cv2.imread("c.jpg", cv2.IMREAD_COLOR)  
+        self.imgCur =  cv2.imread("c.jpg", cv2.IMREAD_COLOR)
         self.imgSrc =  self.imgCur.copy()
         self.image_label.setGeometry(QRect(110, 0, 640, 480))
         self.image_label.setPixmap(QtGui.QPixmap("c.jpg"))
@@ -79,14 +81,14 @@ class Ui_ImageDialog(QWidget):
         vbox = QVBoxLayout()
         vbox.addLayout(box)
         vbox.addWidget(self.image_label)
-  
+
         groupbox.setLayout(vbox)
 
         return groupbox
 
     def createResultImage(self):
         groupbox = QGroupBox('Result Image')
-       
+
         self.iv.setGeometry(QRect(0, 0, 640, 480))
         #self.rst_label.setText("result")
         vbox = QVBoxLayout()
@@ -102,7 +104,7 @@ class Ui_ImageDialog(QWidget):
         box = QHBoxLayout()
 
         label = QLabel('Server IP')
-        
+
         self.ip = QLineEdit('223.171.46.135')
         self.ip.setInputMask('000.000.000.000;_')
         box.addWidget(label)
@@ -115,11 +117,11 @@ class Ui_ImageDialog(QWidget):
         self.btn = QPushButton('접속')  # 나중에 연결상태표시를 아이콘으로 했으면 함.
         self.btn.clicked.connect(self.connectClicked)
         box.addWidget(self.btn)
-             
+
         label = QLabel('정보')
         self.infomsg = QTextEdit()
         self.infomsg.setFixedHeight(350)
-        self.infomsg.setStyleSheet("background-color: black; border: 1px solid gray;") 
+        self.infomsg.setStyleSheet("background-color: black; border: 1px solid gray;")
         self.infomsg.setTextColor(QColor(255,255,0))
 
         self.sendmsg = QLineEdit()
@@ -136,11 +138,11 @@ class Ui_ImageDialog(QWidget):
         i_box.addWidget(self.loadbtn)
 
         self.imgProc = QPushButton('영상 필터 처리')
-        self.imgProc.clicked.connect(self.imgProcess)  
+        self.imgProc.clicked.connect(self.imgProcess)
 
         self.clearbtn = QPushButton('정보창 지움')
         self.clearbtn.clicked.connect(self.clearMsg)
-        
+
         cbox = QVBoxLayout()
         cbox.addWidget(label)
         cbox.addWidget(self.infomsg)
@@ -150,12 +152,12 @@ class Ui_ImageDialog(QWidget):
         cbox.addWidget(self.imgProc)
         cbox.addWidget(self.clearbtn)
         cbox.addStretch(1)
-        
-        vbox = QVBoxLayout()        
+
+        vbox = QVBoxLayout()
         vbox.addLayout(box)
-        vbox.addLayout(cbox)        
+        vbox.addLayout(cbox)
         gb.setLayout(vbox)
-        return gb    
+        return gb
 
     def createPushButtonGroup(self):
         groupbox = QGroupBox('MAIVZ DB 접속')
@@ -180,7 +182,7 @@ class Ui_ImageDialog(QWidget):
         box.addWidget(self.savebtn)
         self.selectbtn = QPushButton('조회')  # 나중에 연결상태표시를 아이콘으로 했으면 함.
         self.selectbtn.clicked.connect(self.selectRecode)
-        box.addWidget(self.selectbtn)        
+        box.addWidget(self.selectbtn)
         popupbutton = QPushButton('품종인식 TEST')
         menu = QMenu(self)
         menu.addAction('Feature Matching',self.fm)
@@ -197,19 +199,19 @@ class Ui_ImageDialog(QWidget):
         cbox.addWidget(popupbutton)
         cbox.addWidget(self.checkBox1)
         cbox.addStretch(1)
-        
+
         self.f_label.setGeometry(QRect(60, 0, 640, 480))
-        self.f_label.setText("Feature")        
+        self.f_label.setText("Feature")
         self.f_label.setAlignment(Qt.AlignCenter)
         self.f_label.setWordWrap(False)
         self.f_label.setObjectName("f_label")
 
-        vbox = QVBoxLayout()        
+        vbox = QVBoxLayout()
         vbox.addLayout(box)
-        vbox.addLayout(cbox)   
-        vbox.addWidget(self.f_label)     
+        vbox.addLayout(cbox)
+        vbox.addWidget(self.f_label)
         groupbox.setLayout(vbox)
-        return groupbox    
+        return groupbox
 
 
 # 기능관련 #############################
@@ -233,35 +235,36 @@ class Ui_ImageDialog(QWidget):
         self.c.recv.recv_signal.connect(self.update_image)
         self.iv.crop.cut_signal.connect(self.cut_image)
         self.f.report.msg_signal.connect(self.update_msg)
-        self.c.disconn.disconn_signal.connect(self.updateDisconnect)  
-        self.infomsg.append('이미지 서버에 접속 했습니다')     
+        self.c.disconn.disconn_signal.connect(self.updateDisconnect)
+        self.infomsg.append('이미지 서버에 접속 했습니다')
 
-    def updateImageLable(self, q_img):          
+    def updateImageLable(self, q_img):
         self.image_label.setPixmap(q_img)
         if self.checkBox1.isChecked() == True:
             self.fm()
-    
-    def updateFeatureLable(self, q_img):          
-        self.f_label.setPixmap(q_img)        
 
-    def sendImage2rst(self):     
-        self.iv.setImage(self.convert_cv_qt(self.imgCur))            
+    def updateFeatureLable(self, q_img):
+        self.f_label.setPixmap(q_img)
+
+    def sendImage2rst(self):
+        self.iv.setImage(self.convert_cv_qt(self.imgCur))
         #self.rst_label.setPixmap(self.convert_cv_qt(self.imgCur))
-        self.imgSrc =  self.imgCur.copy() 
-        self.infomsg.append('결과 영상을 업데이트 했습니다')     
+        self.imgSrc =  self.imgCur.copy()
+        self.infomsg.append('결과 영상을 업데이트 했습니다')
 
     def updateDisconnect(self):
         self.btn.setText('접속')
-        self.infomsg.append('이미지 서버에 접속이 종료되었습니다')  
+        self.infomsg.append('이미지 서버에 접속이 종료되었습니다')
 
     def onActivatedCombo(self, text):
         self.infomsg.append(text)
-        self.c.changeMode()
-        self.infomsg.append('이미지 채널이 변경 되었습니다')  
+        #self.c.changeMode()
+        self.c.changeMode(text)
+        self.infomsg.append('이미지 채널이 변경 되었습니다')
 
     def sendMsg(self):
         sendmsg = self.sendmsg.text()
-        self.infomsg.append(sendmsg)        
+        self.infomsg.append(sendmsg)
         self.sendmsg.clear()
 
     def clearMsg(self):
@@ -269,27 +272,33 @@ class Ui_ImageDialog(QWidget):
 
     def imgProcess(self):
         self.f_label.setPixmap(self.convert_cv_qt(self.imgCur))
-        self.infomsg.append('영상처리를 시작 합니다. ')       
+        self.infomsg.append('영상처리를 시작 합니다. ')
 
     def saveRecode(self):
         pn = self.pname.text()
         cc = self.ccode.text()
         pc = self.pcode.text()
-        self.d.insert_partname(pn,cc,pc)
-        self.d.insert_partimage(pc,self.imgSrc)
-        self.infomsg.append('데이터를 MAVIZ DB에 저장 합니다. ')  
-        self.pname.clear()
-        self.ccode.clear()
-        self.pcode.clear()
+        check_result = self.d.check_data(pc)
+        if check_result :
+            self.d.insert_partname(pn,cc,pc)
+            self.d.insert_partimage(pc,self.imgSrc)
+            self.infomsg.append('데이터를 MAVIZ DB에 저장 합니다. ')
+            self.pname.clear()
+        else :
+            self.infomsg.append('데이터가 이미 DB에 존재합니다')
+        #self.ccode.clear()
+        #self.pcode.clear()
 
     def selectRecode(self):
         pn = self.pname.text()
         pc = self.pcode.text()
-        self.imgSrc = self.d.select_partimage(pc)
+        self.imgSrc,name,color = self.d.select_partimage(pc)
         self.infomsg.append('데이터를 MAVIZ DB에서 조회 합니다. ')
         self.pname.clear()
         self.ccode.clear()
-        self.pcode.clear()
+        #self.pcode.clear()
+        self.pname.setText(name)
+        self.ccode.setText(color)
         #self.f_label.setPixmap(self.convert_cv_qt(img))
         self.iv.setImage(self.convert_cv_qt(self.imgSrc))
 
@@ -306,23 +315,23 @@ class Ui_ImageDialog(QWidget):
         finally:
             pass
         #rst = self.f.get_corrected_img( self.imgSrc, self.imgCur)
-        self.iv.setImage(self.convert_cv_qt(self.imgCur))   
+        self.iv.setImage(self.convert_cv_qt(self.imgCur))
 
     def test2(self):
-        self.infomsg.append('test 2 ')  
+        self.infomsg.append('test 2 ')
     def test3(self):
-        self.infomsg.append('test 3 ')  
+        self.infomsg.append('test 3 ')
     def test4(self):
-        self.infomsg.append('test 4 ')  
+        self.infomsg.append('test 4 ')
 
     def closeEvent(self, e):
-        self.c.stop() 
+        self.c.stop()
 
-    def checkBoxState(self):  
+    def checkBoxState(self):
         if self.checkBox1.isChecked() == True:
-            self.infomsg.append('Feature matcing!! checked')  
+            self.infomsg.append('Feature matcing!! checked')
         else:
-            self.infomsg.append('Feature matcing!! end')  
+            self.infomsg.append('Feature matcing!! end')
 
     def convert_cv_qt(self, frame):
         """Convert from an opencv image to QPixmap"""
@@ -345,7 +354,7 @@ class Ui_ImageDialog(QWidget):
         roi_to_Qt_format = QtGui.QImage(rgb_image.data, w, h, bytes_per_line, QtGui.QImage.Format_RGB888)
         p = roi_to_Qt_format.scaled(250, 300, Qt.KeepAspectRatio)
         return QPixmap.fromImage(p)
-
+    '''
     def create_folder(self,directory):
         try:
             if not os.path.exists(directory):
@@ -353,14 +362,16 @@ class Ui_ImageDialog(QWidget):
                 print("폴더 생성 성공")
         except OSError:
             print('Error: Creating directory. ' + directory )
+    '''
 
     def pushButtonClicked(self) :
         fname = QFileDialog.getOpenFileName(self)
         #self.label.setText(fname[0])
         img_path = fname[0]
         fname_list = img_path.split('/')
+        length = len(fname_list)
         #print(fname_list)
-        img_name = fname_list[4] + "/" + fname_list[5]
+        img_name = fname_list[length-2] + "/" + fname_list[length-1]
         self.infomsg.append(img_name)
         self.imgSrc = cv2.imread(img_path)
         self.infomsg.append("이미지 사이즈 : " +  str(self.imgSrc.shape))
@@ -380,6 +391,7 @@ class Ui_ImageDialog(QWidget):
     def cut_image(self,cv_img, h, w):
         self.imgSrc = cv_img
         qt_img = self.convert_cv_qt(cv_img)
+        self.infomsg.append("이미지 사이즈 : width = " + str(w) + ", height = " + str(h))
         self.updateFeatureLable(qt_img)
 
     @pyqtSlot(str)
