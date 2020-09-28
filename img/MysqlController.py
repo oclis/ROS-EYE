@@ -39,7 +39,29 @@ class MysqlController:
         self.conn = pymysql.connect(host=host, user= id, password=pw, db=db_name,charset='utf8')
         self.curs = self.conn.cursor()
         self.bConnect = True
-        self.bMode = False        
+        self.bMode = False
+
+    def check_data(self, pcode):
+        if self.bConnect :
+            try:
+                check_result = True
+                sql = """SELECT count(*) FROM partname WHERE pcode = %s"""
+                args = (pcode)
+                self.curs.execute(sql,args)
+                rows = self.curs.fetchall()
+                result = rows[0][0]
+                if result > 0 :
+                    check_result = False
+                else :
+                    check_result = True
+                return check_result
+            finally:
+                #self.conn.close()
+                pass
+        else :
+            # send message to parent
+            print('DB is Not connected!!!1')
+
 
     def insert_partname(self, pname, ccode, pcode):    
 
@@ -92,16 +114,19 @@ class MysqlController:
         if self.bConnect :
             try:
                 #sql = """SELECT image FROM partimage WHERE pid = (SELECT pid FROM partname where name = %s)"""
-                sql = """SELECT image FROM partimage WHERE pid = (SELECT pid FROM partname where pcode = %s)"""
+                #sql = """SELECT image FROM partimage WHERE pid = (SELECT pid FROM partname where pcode = %s)"""
+                sql = """SELECT A.image, B.name, B.ccode FROM partimage as A, partname as B WHERE A.pid = B.pid AND A.pid = (SELECT pid FROM partname where pcode = %s)"""
                 args = (pcode)
                 self.curs.execute(sql,args)
                 rows = self.curs.fetchall()
                 img = rows[0][0]
+                name = rows[0][1]
+                color = rows[0][2]
                 d_img = base64.decodebytes(img)
                 d_img = np.fromstring(d_img,np.uint8)
                 decode_img = cv2.imdecode(d_img, 1)
 
-                return decode_img
+                return decode_img,name,color
             finally:
                 #self.conn.close()
                 pass
