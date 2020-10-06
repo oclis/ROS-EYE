@@ -42,16 +42,16 @@ time = 0
 time_val = 4
 
 #ROI 전체 사진 짜르기 camera A 1280 x 620
-roi_x = 0
+roi_x = 640
 roi_y = 0
 roi_w = 1280
-roi_h = 620
+roi_h = 640
 
 #ROI 전체 사진 짜르기 camera B 1110 x 690
-b_x = 125
+b_x = 280
 b_y = 0
-b_w = 1235
-b_h = 690
+b_w = 1280
+b_h = 720
 
 #ROI 기계 작동 유무
 move_value = 0
@@ -59,10 +59,10 @@ move_value = 0
 
 #ROI 물체 유무
 x_roi_goods = 640
-y_roi_goods = 50
+y_roi_goods = 0
 w_roi_goods = 640
-h_roi_goods = 640
-goods_value = 300
+h_roi_goods = 570
+goods_value = 1000
 
 #mog2 setting
 mog_history = 400
@@ -100,12 +100,12 @@ def active_check (src1, src2) :
     dst = cv2.absdiff(gray_src1, gray_src2)
     _, dst_th = cv2.threshold(dst, 15, 255, cv2.THRESH_BINARY)
     dst_roi = dst_th[0: 40 , 0: 360]
-    goods_roi = dst_th[y_roi_goods:y_roi_goods+h_roi_goods, x_roi_goods: x_roi_goods+w_roi_goods]
+    goods_roi = dst_th
     move_check = cv2.countNonZero(dst_roi)
     if move_check < move_value and move_check > 10:
         print("ROI_move_value :", move_check)
     goods_check = cv2.countNonZero(goods_roi)
-    #print("goods_check :", goods_check)
+    print("ROI goods_check :", goods_check)
     #print("ROI_move_value :", move_check)
     return dst, move_check,goods_check
 
@@ -130,6 +130,21 @@ def bg_average(average, images,count):
     average = average / count
     average = np.uint8(average)
     return average
+
+def color_histo (src) :
+    yCrCb = cv2.cvtColor(src, cv2.COLOR_BGR2YCrCb)
+    # y, Cr, Cb로 컬러 영상을 분리 합니다.
+    y, Cr, Cb = cv2.split(yCrCb)
+    # y값을 히스토그램 평활화를 합니다.
+    # equalizedY = cv2.equalizeHist(y)
+    clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+    equalizedY = clahe.apply(y)
+
+    # equalizedY, Cr, Cb를 합쳐서 새로운 yCrCb 이미지를 만듭니다.
+    yCrCb2 = cv2.merge([equalizedY, Cr, Cb])
+    # 마지막으로 yCrCb2를 다시 BGR 형태로 변경합니다.
+    yCrCbDst = cv2.cvtColor(yCrCb2, cv2.COLOR_YCrCb2BGR)
+    return yCrCbDst
 
 # Create socket and wait for client connection
 serv_sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  # 소켓 생성
@@ -220,16 +235,16 @@ try:
                 #print("cameraContextValue : " + str(cameraContextValue))
                 if cameraContextValue < 1:
                     #img0 = cv2.resize(img, (0, 0), fx=0.25, fy=0.25)
-                    img0 = cv2.resize(img,dsize=(1280,720))
+                    img0 = cv2.resize(img,dsize=(1280,640))
                     color_a = img0
-                    color_a = color_a[roi_y:roi_y + roi_h, roi_x:roi_x + roi_w]
+                    color_a = color_a[roi_y:roi_h, roi_x:roi_w]
                     #color_a = img
                     # print( cameraContextValue, img0.shape )
                     #cv2.imshow('title-0', img0)
                 elif cameraContextValue < 2:
-                    img1 = cv2.resize(img,dsize=(1280,720))
+                    img1 = cv2.resize(img,dsize=(1280,640))
                     color_b = img1
-                    color_b = color_b[b_y: b_h, b_x: b_w]
+                    #color_b = color_b[b_y: b_h, b_x: b_w]
                     #img1 = cv2.resize(img, (0, 0), fx=0.25, fy=0.25)
                     # print( cameraContextValue, img1.shape )
                     #cv2.imshow('title-1', img1)
@@ -256,8 +271,20 @@ try:
                             active_flag = False
                             active_state = 'S'
 
-                    fgmask = fgbg.apply(color_a)
-                    fgmask = open_close_dilate(fgmask)
+                    #fgmask = fgbg.apply(color_a)
+                    #fgmask = open_close_dilate(fgmask)
+                    #mask = fgmask
+
+
+                    a_histo = color_histo(color_a)
+                    hsv = cv2.cvtColor(a_histo,cv2.COLOR_BGR2HSV)
+                    mask = cv2.inRange(hsv, (50, 150, 0), (70, 255, 255))
+                    #no_bg = cv2.copyTo(a_histo, mask)
+                    cv2.bitwise_not(mask,mask)
+                    no_bg = cv2.bitwise_and(a_histo, a_histo, mask=mask)
+
+
+
                     '''
                     # 평균 배경
                     t += 1
@@ -283,10 +310,9 @@ try:
 
                     mask = cv2.bitwise_or(fgmask, bImage)
                     '''
-                    mask = fgmask
                     # mask = bImage
 
-                    no_bg = cv2.bitwise_and(color_a, color_a, mask=mask)
+                    #no_bg = cv2.bitwise_and(color_a, color_a, mask=mask)
                     #no_bg = mask
 
                     #no_bg = no_bg[roi_y:roi_y + roi_h, roi_x:roi_x + roi_w]
