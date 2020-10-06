@@ -1,5 +1,5 @@
 from PyQt5.QtCore import QDir, Qt,QRect,QSize,pyqtSignal,QObject
-from PyQt5.QtGui import QImage, QPainter, QPalette, QPixmap,QColor
+from PyQt5.QtGui import QImage, QPainter, QPalette, QPixmap,QColor,QTransform
 from PyQt5.QtWidgets import (QAction, QApplication, QFileDialog, QLabel,
         QMainWindow, QMenu, QMessageBox, QScrollArea, QSizePolicy,QWidget,QRubberBand,QToolTip)
 import cv2      
@@ -11,8 +11,9 @@ class Signal(QObject):
 class ImageViewer(QLabel):
     def __init__(self):
         super(ImageViewer, self).__init__()
-        self.crop = Signal() 
-        pixmap = QPixmap(600, 480)
+        self.crop = Signal()
+        #pixmap = QPixmap(600, 480)
+        pixmap = QPixmap()
         self.setPixmap(pixmap)
 
         self.first_x, self.first_y = None, None
@@ -22,7 +23,7 @@ class ImageViewer(QLabel):
         self.setBackgroundRole(QPalette.Base)
         self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
         self.setScaledContents(True)
-        self.setGeometry(QRect(60, 0, 640, 480))
+        #self.setGeometry(QRect(60, 0, 640, 480))
         self.setText("Feature")        
         self.setAlignment(Qt.AlignTop | Qt.AlignLeft)
         self.setWordWrap(False)
@@ -126,12 +127,37 @@ class ImageViewer(QLabel):
         #QToolTip.showText(eventQMouseEvent.pos() , "X: "+text1+" "+"Y: "+text2,self)
         QToolTip.showText(p, "X: "+text1+" "+"Y: "+text2,self)
         # print ('mouse QToolTip 1') 전체장에서의 위젯 시작점의 좌표가 오리진 포인트가 되어야 함.
+        '''
         if self.currentQRubberBand.isVisible():
             self.currentQRubberBand.setGeometry(QRect(self.originQPoint, eventQMouseEvent.pos()).normalized() & self.pixmap().rect())
+        '''
+        pos = self.mapFromGlobal(self.mapToGlobal(eventQMouseEvent.pos()))
+        #QToolTip.showText(eventQMouseEvent.pos(), "X: {} Y: {}".format(p.x(), p.y()), self)
+        if self.currentQRubberBand.isVisible() and self.pixmap() is not None:
+            self.currentQRubberBand.setGeometry(QRect(self.originQPoint, pos).normalized() & self.rect())
+
+
 
     def mouseReleaseEvent (self, eventQMouseEvent):
         self.last_x = int(eventQMouseEvent.x())
         self.last_y = int(eventQMouseEvent.y())
+
+        '''
+        self.currentQRubberBand.hide()
+        currentQRect = self.currentQRubberBand.geometry()
+        self.currentQRubberBand.deleteLater()
+        if self.pixmap() is not None:
+            tr = QTransform()
+            if self.fitToWindowAct.isChecked():
+                tr.scale(self.pixmap().width() / self.scrollArea.width(),
+                         self.pixmap().height() / self.scrollArea.height())
+            else:
+                tr.scale(1 / self.scaleFactor, 1 / self.scaleFactor)
+            r = tr.mapRect(currentQRect)
+            cropQPixmap = self.pixmap().copy(r)
+            cropQPixmap.save('output.png')
+        '''
+
         self.currentQRubberBand.hide()
         currentQRect = self.currentQRubberBand.geometry()
         self.currentQRubberBand.deleteLater()
@@ -141,7 +167,7 @@ class ImageViewer(QLabel):
         #s = cropQPixmap.bits().asstring(size.width() * size.height() * image.depth() // 8)  # format 0xffRRGGBB
         #arr = np.fromstring(s, dtype=np.uint8).reshape((size.height(), size.width(), cropQPixmap.depth() // 8))
         #new_image = Image.fromarray(array)
-        cropQPixmap.save('output.png') 
+        cropQPixmap.save('output.png')
         img = cv2.imread("output.png", cv2.IMREAD_COLOR)
         h, w = self.cut_imgSize()
         self.crop.cut_signal.emit(img, h, w)
