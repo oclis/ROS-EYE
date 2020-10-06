@@ -1,9 +1,10 @@
 from PyQt5 import QtGui
 from PyQt5.QtWidgets import QWidget, QApplication, QLabel,QGridLayout,QCheckBox,QMenu, QVBoxLayout, QHBoxLayout, \
-     QGroupBox, QLineEdit, QPushButton, QTextEdit,QComboBox
+     QGroupBox, QLineEdit, QPushButton, QTextEdit,QComboBox, QMessageBox, QFileDialog
 from PyQt5.QtGui import QPixmap,QImage,QColor
 from PyQt5.QtCore import QDir, Qt,QRect,QSize
-from PyQt5.QtWidgets import QFileDialog
+#from PyQt5.QtWidgets import QFileDialog
+#from PyQt5.QtWidgets import QMessageBox
 import socket
 import time
 import sys
@@ -29,7 +30,9 @@ class Ui_ImageDialog(QWidget):
     def __init__(self):
         super().__init__()
         self.c = img_client.ClientSocket(self)
-        self.d = MysqlController.MysqlController('172.17.0.161','mgt','aA!12345','maviz')
+        self.d = MysqlController.MysqlController('223.171.42.36','mgt','aA!12345','maviz')
+        #self.d = MysqlController.MysqlController('192.168.100.100','mgt','aA!12345','maviz')
+        #self.d = MysqlController.MysqlController('172.17.0.161','mgt','aA!12345','maviz')
         #self.d = MysqlController.MysqlController('172.17.1.153','mgt','aA!12345','maviz')
         #self.d = MysqlController.MysqlController('localhost','mgt','aA!12345','maviz')
         self.f = recognizer.featureMatcher()
@@ -89,12 +92,17 @@ class Ui_ImageDialog(QWidget):
     def createResultImage(self):
         groupbox = QGroupBox('Result Image')
 
-        self.iv.setGeometry(QRect(0, 0, 640, 480))
+        #self.iv.setGeometry(QRect(0, 0, 640, 480))
+        #self.iv.setGeometry(QRect(110, 0, 800, 600))
+        self.iv.setPixmap(QtGui.QPixmap("c.jpg"))
+        self.iv.setAlignment(Qt.AlignCenter)
+        self.iv.setWordWrap(False)
         #self.rst_label.setText("result")
+
         vbox = QVBoxLayout()
         vbox.addWidget(self.iv)
         groupbox.setLayout(vbox)
-        groupbox.setFixedSize(QSize(680, 520))
+        #groupbox.setFixedSize(QSize(680, 520))
         return groupbox
 
     def createInfoGroup(self):
@@ -271,36 +279,65 @@ class Ui_ImageDialog(QWidget):
         self.infomsg.clear()
 
     def imgProcess(self):
-        self.f_label.setPixmap(self.convert_cv_qt(self.imgCur))
         self.infomsg.append('영상처리를 시작 합니다. ')
+        yCrCb = cv2.cvtColor(self.imgCur, cv2.COLOR_BGR2YCrCb)
+        # y, Cr, Cb로 컬러 영상을 분리 합니다.
+        y, Cr, Cb = cv2.split(yCrCb)
+        # y값을 히스토그램 평활화를 합니다.
+        #equalizedY = cv2.equalizeHist(y)
+        clahe = cv2.createCLAHE(clipLimit=2.0, tileGridSize=(8, 8))
+        equalizedY = clahe.apply(y)
+
+        # equalizedY, Cr, Cb를 합쳐서 새로운 yCrCb 이미지를 만듭니다.
+        yCrCb2 = cv2.merge([equalizedY, Cr, Cb])
+        # 마지막으로 yCrCb2를 다시 BGR 형태로 변경합니다.
+        yCrCbDst = cv2.cvtColor(yCrCb2, cv2.COLOR_YCrCb2BGR)
+        self.f_label.setPixmap(self.convert_cv_qt(yCrCbDst))
+
+
+        '''
+        gray_img = cv2.cvtColor(self.imgCur, cv2.COLOR_BGR2GRAY)
+        equalized_img = cv2.equalizeHist(gray_img)
+        img = cv2.cvtColor(equalized_img,cv2.COLOR_GRAY2BGR)
+        self.f_label.setPixmap(self.convert_cv_qt(img))
+        '''
+        #self.f_label.setPixmap(self.convert_cv_qt(self.imgCur))
 
     def saveRecode(self):
         pn = self.pname.text()
         cc = self.ccode.text()
         pc = self.pcode.text()
-        check_result = self.d.check_data(pc)
-        if check_result :
-            self.d.insert_partname(pn,cc,pc)
-            self.d.insert_partimage(pc,self.imgSrc)
-            self.infomsg.append('데이터를 MAVIZ DB에 저장 합니다. ')
-            self.pname.clear()
+        if len(pn) > 0 and len(cc) > 0 and len(pc) > 0 :
+            check_result = self.d.check_data(pc)
+            if check_result :
+                self.d.insert_partname(pn,cc,pc)
+                self.d.insert_partimage(pc,self.imgSrc)
+                self.infomsg.append('데이터를 MAVIZ DB에 저장 합니다. ')
+                self.pname.clear()
+            else :
+                self.infomsg.append('데이터가 이미 DB에 존재합니다')
+            #self.ccode.clear()
+            #self.pcode.clear()
         else :
-            self.infomsg.append('데이터가 이미 DB에 존재합니다')
-        #self.ccode.clear()
-        #self.pcode.clear()
+            self.alarm_box("DB 등록 오류", "빈칸을 입력해주세요")
 
     def selectRecode(self):
         pn = self.pname.text()
         pc = self.pcode.text()
-        self.imgSrc,name,color = self.d.select_partimage(pc)
-        self.infomsg.append('데이터를 MAVIZ DB에서 조회 합니다. ')
-        self.pname.clear()
-        self.ccode.clear()
-        #self.pcode.clear()
-        self.pname.setText(name)
-        self.ccode.setText(color)
-        #self.f_label.setPixmap(self.convert_cv_qt(img))
-        self.iv.setImage(self.convert_cv_qt(self.imgSrc))
+        if len(pc) > 0 :
+            self.imgSrc,name,color = self.d.select_partimage(pc)
+            self.infomsg.append('데이터를 MAVIZ DB에서 조회 합니다. ')
+            self.pname.clear()
+            self.ccode.clear()
+            #self.pcode.clear()
+            self.pname.setText(name)
+            self.ccode.setText(color)
+            #self.f_label.setPixmap(self.convert_cv_qt(img))
+            self.iv.setImage(self.convert_cv_qt(self.imgSrc))
+        else :
+            self.alarm_box("조회 오류", "부품코드를 입력해주세요")
+
+
 
     def fm(self): #feature matching
         result = find_almost_similar_image_locations(self.imgSrc,self.imgCur)
@@ -335,11 +372,14 @@ class Ui_ImageDialog(QWidget):
 
     def convert_cv_qt(self, frame):
         """Convert from an opencv image to QPixmap"""
+        frame = cv2.resize(frame,(0,0),fx=0.7,fy=0.7)
+        #frame = cv2.resize(frame,dsize=(800,600))
         rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         h, w, ch = rgb_image.shape
         bytes_per_line = ch * w
         convert_to_Qt_format = QtGui.QImage(rgb_image.data, w, h, bytes_per_line, QtGui.QImage.Format_RGB888)
-        p = convert_to_Qt_format.scaled(640, 480, Qt.KeepAspectRatio)
+        #p = convert_to_Qt_format.scaled(640, 480, Qt.KeepAspectRatio)
+        p = convert_to_Qt_format.scaled(w, h, Qt.KeepAspectRatio)
         return QPixmap.fromImage(p)
 
     def extract_ROI(self, frame):
@@ -377,6 +417,10 @@ class Ui_ImageDialog(QWidget):
         self.infomsg.append("이미지 사이즈 : " +  str(self.imgSrc.shape))
         self.iv.setImage(self.convert_cv_qt(self.imgSrc))
         #return fname
+
+    def alarm_box(self, title, message):
+        msg_box = QMessageBox(self)
+        msg_box.about(self, title, message)
 
 
 

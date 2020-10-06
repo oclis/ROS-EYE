@@ -36,7 +36,7 @@ import base64
 
 class MysqlController:
     def __init__(self, host, id, pw, db_name):
-        self.conn = pymysql.connect(host=host, user= id, password=pw, db=db_name,charset='utf8')
+        self.conn = pymysql.connect(host=host, user= id, port=333, password=pw, db=db_name,charset='utf8')
         self.curs = self.conn.cursor()
         self.bConnect = True
         self.bMode = False
