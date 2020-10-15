@@ -1,4 +1,5 @@
 from PyQt5.QtCore import QDir, Qt,QRect,QSize,pyqtSignal,QObject
+
 from PyQt5.QtGui import QImage, QPainter, QPalette, QPixmap,QColor,QTransform
 from PyQt5.QtWidgets import (QAction, QApplication, QFileDialog, QLabel,
         QMainWindow, QMenu, QMessageBox, QScrollArea, QSizePolicy,QWidget,QRubberBand,QToolTip)
@@ -12,22 +13,25 @@ class ImageViewer(QLabel):
     def __init__(self):
         super(ImageViewer, self).__init__()
         self.crop = Signal()
-        #pixmap = QPixmap(600, 480)
+        #pixmap = QPixmap(640, 640)
         pixmap = QPixmap()
         self.setPixmap(pixmap)
+
 
         self.first_x, self.first_y = None, None
         self.last_x, self.last_y = None, None
         self.pen_color = QColor('#000000')        
         self.scaleFactor = 0.0
         self.setBackgroundRole(QPalette.Base)
-        self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
-        self.setScaledContents(True)
-        #self.setGeometry(QRect(60, 0, 640, 480))
-        self.setText("Feature")        
-        self.setAlignment(Qt.AlignTop | Qt.AlignLeft)
-        self.setWordWrap(False)
+        #self.setSizePolicy(QSizePolicy.Ignored, QSizePolicy.Ignored)
+        #self.setScaledContents(True)
 
+        #self.setGeometry(QRect(110, 550, 640, 640))
+        self.setText("Feature")
+        #self.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+        self.setAlignment(Qt.AlignCenter)
+        self.setWordWrap(False)
+        #self.setFixedSize(640,640)
         self.createActions()
         self.show()
 
@@ -35,7 +39,7 @@ class ImageViewer(QLabel):
     def setImage(self, q_img):        
         self.setPixmap(q_img)
         self.scaleFactor = 1.0
-        self.fitToWindowAct.setEnabled(True)
+        #self.fitToWindowAct.setEnabled(True)
         self.updateActions()
 
         if not self.fitToWindowAct.isChecked():

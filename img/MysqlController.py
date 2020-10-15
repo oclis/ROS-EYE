@@ -37,6 +37,7 @@ import base64
 class MysqlController:
     def __init__(self, host, id, pw, db_name):
         self.conn = pymysql.connect(host=host, user= id, port=333, password=pw, db=db_name,charset='utf8')
+        #self.conn = pymysql.connect(host=host, user= id,  password=pw, db=db_name,charset='utf8')
         self.curs = self.conn.cursor()
         self.bConnect = True
         self.bMode = False
@@ -108,6 +109,7 @@ class MysqlController:
             # send message to parent 
             print('DB is Not connected!!!1')
 
+    #타이핑한 품종으로 로드
     def select_partimage(self, pcode):
         # 이미지 데이터를 업로드 하는 부분이 String으로 바꾸어 주어야 함.
 
@@ -131,5 +133,41 @@ class MysqlController:
                 #self.conn.close()
                 pass
         else :
+            # send message to parent
+            print('DB is Not connected!!!1')
+
+    #detect 한 품종으로 이미지 로드
+    def load_image(self, pcode) :
+
+        if len(pcode) < 12 :
+            sql_pcode = pcode[:3] + '-' + pcode[3:5] + "-" + pcode[5:]
+        else :
+            sql_pcode = pcode
+
+        if self.bConnect:
+            try:
+                print(sql_pcode)
+                sql = """SELECT A.image, B.name, B.ccode FROM partimage as A, partname as B WHERE A.pid = B.pid AND A.pid = (SELECT pid FROM partname where pcode = %s)"""
+                args = (sql_pcode)
+                self.curs.execute(sql, args)
+                rows = self.curs.fetchall()
+                #print("rows 결과 :", rows)
+                print("rows 길이 : " , len(rows))
+                decode_img, name, color = None,None,None
+                if len(rows) > 0:
+                    img = rows[0][0]
+                    name = rows[0][1]
+                    color = rows[0][2]
+                    d_img = base64.decodebytes(img)
+                    d_img = np.fromstring(d_img, np.uint8)
+                    decode_img = cv2.imdecode(d_img, 1)
+                    return decode_img, name, color
+                else :
+                    print("db 데이터 없음")
+                return decode_img, name, color
+            finally:
+                # self.conn.close()
+                pass
+        else:
             # send message to parent
             print('DB is Not connected!!!1')

@@ -7,10 +7,6 @@ import cv2
 import datetime
 import os
 
-img_date = datetime.datetime.now().strftime("%Y%m%d")
-PATH = '../../../img_fursys/' + img_date
-
-
 class Signal(QObject):
     recv_signal = pyqtSignal(np.ndarray)
     disconn_signal = pyqtSignal()
@@ -28,7 +24,7 @@ class ClientSocket:
         self.bConnect = False
         #self.bMode = False
         self.bMode = "ColorA"
-        self.create_folder(PATH)
+        #self.create_folder(PATH)
 
     def __del__(self):
         self.stop()
@@ -87,6 +83,8 @@ class ClientSocket:
                 data = np.fromstring(StringData, dtype='uint8')
                 decode_img = cv2.imdecode(data, 1)
                 img_time = datetime.datetime.now().strftime("%Y_%m_%d_%H_%M_%S")
+                img_date = datetime.datetime.now().strftime("%Y%m%d")
+                PATH = '../../../img_fursys/' + img_date
 
                 #if time == timeVal :
                 if action_state == 'A' and goods_state == 'Y':
@@ -94,13 +92,26 @@ class ClientSocket:
                         filename = img_time + '_colorA.jpg'
                         PATHA = PATH + "/colorA"
                         self.create_folder(PATHA)
+                        '''
+                        roi_x = 640
+                        roi_y = 0
+                        roi_w = 1280
+                        roi_h = 640
+                        decode_imgROI = decode_img[roi_y:roi_y + roi_h, roi_x:roi_x + roi_w]
+                        '''
+
                         cv2.imwrite(os.path.join(PATHA, filename), decode_img)
                         #print("camera_state : " + camera_state)
                     elif camera_state == "CB":
                         filename = img_time + '_colorB.jpg'
                         PATHB = PATH + "/colorB"
                         self.create_folder(PATHB)
-                        cv2.imwrite(os.path.join(PATHB, filename), decode_img)
+                        roi_y = 0
+                        roi_x = 500
+                        roi_w = 640
+                        roi_h = 640
+                        decode_imgROI = decode_img[roi_y:roi_y+roi_h, roi_x:roi_x+roi_w]
+                        cv2.imwrite(os.path.join(PATHB, filename), decode_imgROI)
                     else :
                         pass
                     #time = 0
