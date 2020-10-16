@@ -154,11 +154,13 @@ class Ui_ImageDialog(QWidget):
         self.infomsg.setFixedHeight(350)
         self.infomsg.setStyleSheet("background-color: black; border: 1px solid gray;")
         self.infomsg.setTextColor(QColor(255,255,0))
+        self.infomsg.setFontPointSize(20)
 
         self.sendmsg = QLineEdit()
 
         i_box = QHBoxLayout()
-        self.sendbtn = QPushButton('이미지 선택')
+        #self.sendbtn = QPushButton('이미지 선택')
+        self.sendbtn = QPushButton('품종인식 test')
         self.sendbtn.setAutoDefault(True)
         self.sendbtn.clicked.connect(self.sendImage2rst)
 
@@ -214,20 +216,20 @@ class Ui_ImageDialog(QWidget):
         self.selectbtn = QPushButton('조회')  # 나중에 연결상태표시를 아이콘으로 했으면 함.
         self.selectbtn.clicked.connect(self.selectRecode)
         box.addWidget(self.selectbtn)
-        popupbutton = QPushButton('품종인식 TEST')
+        #popupbutton = QPushButton('품종인식 TEST')
         menu = QMenu(self)
         menu.addAction('Feature Matching',self.fm)
         menu.addAction('Second Item',self.test2)
         menu.addAction('Third Item',self.test3)
         menu.addAction('Fourth Item',self.test4)
-        popupbutton.setMenu(menu)
+        #popupbutton.setMenu(menu)
 
         self.checkBox1 = QCheckBox("Feature Matching", self)
         self.checkBox1.stateChanged.connect(self.checkBoxState)
         cbox = QVBoxLayout()
         label = QLabel('조회')
         cbox.addWidget(label)
-        cbox.addWidget(popupbutton)
+        #cbox.addWidget(popupbutton)
         cbox.addWidget(self.checkBox1)
         cbox.addStretch(1)
 
@@ -454,8 +456,7 @@ class Ui_ImageDialog(QWidget):
 
         parser = argparse.ArgumentParser()
         parser.add_argument('--weights', nargs='+', type=str, default='best.pt', help='model.pt path(s)')
-        parser.add_argument('--source', type=str, default='./detect',
-                            help='source')  # file/folder, 0 for webcam
+        parser.add_argument('--source', type=str, default='./detect',help='source')  # file/folder, 0 for webcam
         parser.add_argument('--output', type=str, default='./output', help='output folder')  # output folder
         parser.add_argument('--img-size', type=int, default=640, help='inference size (pixels)')
         parser.add_argument('--conf-thres', type=float, default=0.4, help='object confidence threshold')
@@ -546,12 +547,12 @@ class Ui_ImageDialog(QWidget):
 
                 save_path = str(Path(out) / Path(p).name)
                 txt_path = str(Path(out) / Path(p).stem) + ('_%g' % dataset.frame if dataset.mode == 'video' else '')
-                s += '%gx%g ' % img.shape[2:]  # print string
+                #s += '%gx%g ' % img.shape[2:]  # print string
                 gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
                 if det is not None and len(det):
                     # Rescale boxes from img_size to im0 size
                     #print("type : " , type(det))
-                    print("det : " , det)
+                    #print("det : " , det)
                     goods_type = None
                     percent = None
                     det[:, :4] = scale_coords(img.shape[2:], det[:, :4], im0.shape).round()
@@ -559,7 +560,7 @@ class Ui_ImageDialog(QWidget):
                     # Print results
                     for c in det[:, -1].unique():
                         n = (det[:, -1] == c).sum()  # detections per class
-                        s += '%g %ss, ' % (n, names[int(c)])  # add to string
+                        s += '%g %s, ' % (n, names[int(c)])  # add to string
 
                     # Write results
                     for *xyxy, conf, cls in reversed(det):
@@ -567,12 +568,15 @@ class Ui_ImageDialog(QWidget):
                             xywh = (xyxy2xywh(torch.tensor(xyxy).view(1, 4)) / gn).view(-1).tolist()  # normalized xywh
                             with open(txt_path + '.txt', 'a') as f:
                                 f.write(('%g ' * 5 + '\n') % (cls, *xywh))  # label format
-                        print(cls)
+                        #print(cls)
                         if save_img or view_img:  # Add bbox to image
                             goods_type = names[int(cls)]
-                            percent = conf
+                            percent = '%.2f' % (conf)
                             label = '%s %.2f' % (names[int(cls)], conf)
-                            plot_one_box(xyxy, im0, label=label, color=colors[int(cls)], line_thickness=3)
+                            print(percent)
+
+                            #plot_one_box(xyxy, im0, label=label, color=colors[int(cls)], line_thickness=3)
+                            plot_one_box(xyxy, im0, label=label, color=(0,0,255), line_thickness=3)
 
                     print("names : ", names[int(cls)])
                     #print("확률 : %.2f", percent )
@@ -580,7 +584,15 @@ class Ui_ImageDialog(QWidget):
                     if cv_img is not None :
                         qt_img = self.convert_cv_qt(cv_img)
                         self.updateFeatureLable(qt_img)
-                        self.infomsg.append("[DETECT] 품종 : %s, 코드 : %s, 갯수 : %d" % (name, goods_type, len(det)))
+                        self.infomsg.append("[DETECT] 품종 : %s, 코드 : %s, 개수 : %d" % (name, goods_type, len(det)))
+                        img_time = datetime.datetime.now().strftime("%Y-%m-%d,%H:%M:%S")
+                        img_date = datetime.datetime.now().strftime("%Y_%m_%d")
+                        log_string = img_time + "," + name + ","+goods_type+"," + str(len(det))
+                        f = open("./log/"+img_date+'_log.csv', mode='at', encoding='utf-8')
+                        f.writelines(log_string+'\n')
+                        f.close()
+                        print(log_string)
+
                         print("db 이미지 업로드 성공")
                     else :
                         print("해당 품목 db에서 조회불가 ")
@@ -588,9 +600,9 @@ class Ui_ImageDialog(QWidget):
                     print("detect 없음")
                     self.infomsg.append("[DETECT] 위 품종은 신규 학습이 필요합니다.")
 
+                print(s)
                 # Print time (inference + NMS)
                 print('%sDone. (%.3fs)' % (s, t2 - t1))
-                print(im0.shape)
                 self.iv.setImage(self.convert_cv_qt(im0))
 
                 # Stream results
