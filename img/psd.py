@@ -42,6 +42,8 @@ QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
 
 class Ui_ImageDialog(QWidget):
 
+    action_state, goods_state = None, None
+
     def __init__(self):
         super().__init__()
         self.c = img_client.ClientSocket(self)
@@ -266,6 +268,7 @@ class Ui_ImageDialog(QWidget):
 
     def connectSignal(self):
         self.c.recv.recv_signal.connect(self.update_image)
+        self.c.recv.send_state_signal.connect(self.recv_state)
         self.iv.crop.cut_signal.connect(self.cut_image)
         self.f.report.msg_signal.connect(self.update_msg)
         self.c.disconn.disconn_signal.connect(self.updateDisconnect)
@@ -452,6 +455,16 @@ class Ui_ImageDialog(QWidget):
         msg_box = QMessageBox(self)
         msg_box.about(self, title, message)
 
+    def detect_set (self):
+        self.imgSrc = self.imgCur.copy()
+        # self.infomsg.append('결과 영상을 업데이트 했습니다')
+        #self.infomsg.append('detect test')
+        filename = "detect.png"
+        path = "./detect"
+        cv2.imwrite(os.path.join(path, filename), self.imgSrc)
+        if self.goods_state == "Y" :
+            self.detect()
+
     def detect(self,save_img=False):
 
         parser = argparse.ArgumentParser()
@@ -537,7 +550,7 @@ class Ui_ImageDialog(QWidget):
             # Apply Classifier
             if classify:
                 pred = apply_classifier(pred, modelc, img, im0s)
-
+            #print("pred",pred)
             # Process detections
             for i, det in enumerate(pred):  # detections per image
                 if webcam:  # batch_size >= 1
@@ -549,12 +562,15 @@ class Ui_ImageDialog(QWidget):
                 txt_path = str(Path(out) / Path(p).stem) + ('_%g' % dataset.frame if dataset.mode == 'video' else '')
                 #s += '%gx%g ' % img.shape[2:]  # print string
                 gn = torch.tensor(im0.shape)[[1, 0, 1, 0]]  # normalization gain whwh
+                # detect 했을 경우
                 if det is not None and len(det):
+                    total = 0.0
                     # Rescale boxes from img_size to im0 size
                     #print("type : " , type(det))
                     #print("det : " , det)
                     goods_type = None
                     percent = None
+                    more_than_90 = 0
                     det[:, :4] = scale_coords(img.shape[2:], det[:, :4], im0.shape).round()
 
                     # Print results
@@ -572,33 +588,49 @@ class Ui_ImageDialog(QWidget):
                         if save_img or view_img:  # Add bbox to image
                             goods_type = names[int(cls)]
                             percent = '%.2f' % (conf)
+                            #print(type(percent))
+                            percent = float(percent)
+                            #print("percent",type(percent))
                             label = '%s %.2f' % (names[int(cls)], conf)
                             print(percent)
-
+                            if percent > 0.85:
                             #plot_one_box(xyxy, im0, label=label, color=colors[int(cls)], line_thickness=3)
-                            plot_one_box(xyxy, im0, label=label, color=(0,0,255), line_thickness=3)
+                                plot_one_box(xyxy, im0, label=label, color=(0,0,255), line_thickness=3)
+                                total = total + percent
+                                more_than_90 += 1
 
-                    print("names : ", names[int(cls)])
-                    #print("확률 : %.2f", percent )
-                    cv_img, name, color = self.d.load_image(goods_type)
-                    if cv_img is not None :
-                        qt_img = self.convert_cv_qt(cv_img)
-                        self.updateFeatureLable(qt_img)
-                        self.infomsg.append("[DETECT] 품종 : %s, 코드 : %s, 개수 : %d" % (name, goods_type, len(det)))
-                        img_time = datetime.datetime.now().strftime("%Y-%m-%d,%H:%M:%S")
-                        img_date = datetime.datetime.now().strftime("%Y_%m_%d")
-                        log_string = img_time + "," + name + ","+goods_type+"," + str(len(det))
-                        f = open("./log/"+img_date+'_log.csv', mode='at', encoding='utf-8')
-                        f.writelines(log_string+'\n')
-                        f.close()
-                        print(log_string)
-
-                        print("db 이미지 업로드 성공")
+                    #avg = total/len(det)
+                    if more_than_90 != 0 :
+                        avg = total/more_than_90
+                        avg = round(avg,2)
+                        #print(total)
+                        #print(more_than_90)
+                        #print(avg)
+                        print("names : ", names[int(cls)])
+                        #print("확률 : %.2f", percent )
+                        cv_img, name, color = self.d.load_image(goods_type)
+                        if cv_img is not None :
+                            qt_img = self.convert_cv_qt(cv_img)
+                            self.updateFeatureLable(qt_img)
+                            #self.infomsg.append("[DETECT] 품종 : %s, 코드 : %s, 개수 : %d" % (name, goods_type, len(det)))
+                            self.infomsg.append("[DETECT] 품종 : %s, 코드 : %s, 개수 : %d" % (name, goods_type, more_than_90))
+                            #img_time = datetime.datetime.now().strftime("%Y-%m-%d,%H:%M:%S")
+                            img_time = datetime.datetime.now().strftime("%H:%M:%S")
+                            img_date = datetime.datetime.now().strftime("%Y_%m_%d")
+                            #log_string = img_time + "," + name + ","+goods_type+"," + str(len(det)) +","+ avg
+                            log_string = img_time + "," + name + ","+goods_type+"," + str(more_than_90) +","+ str(avg)
+                            f = open("./log/"+img_date+'_log.csv', mode='at', encoding='utf-8')
+                            f.writelines(log_string+'\n')
+                            f.close()
+                            print(log_string)
+                            #print("db 이미지 업로드 성공")
+                    #detect 없을 시
                     else :
                         print("해당 품목 db에서 조회불가 ")
                 else :
                     print("detect 없음")
-                    self.infomsg.append("[DETECT] 위 품종은 신규 학습이 필요합니다.")
+                    #self.infomsg.append("[DETECT] 위 품종은 신규 학습이 필요합니다.")
+                    self.infomsg.append("detect 학습 필요")
 
                 print(s)
                 # Print time (inference + NMS)
@@ -643,6 +675,15 @@ class Ui_ImageDialog(QWidget):
         self.imgCur = cv_img
         qt_img = self.convert_cv_qt(cv_img)
         self.updateImageLable(qt_img)
+        self.detect_set()
+
+    @pyqtSlot(str, str)
+    def recv_state(self, actionstate, goodstate):
+        self.action_state = actionstate
+        self.goods_state = goodstate
+        #print(actionstate)
+        #print(goodstate)
+
 
     @pyqtSlot(np.ndarray, int, int)
     def cut_image(self,cv_img, h, w):
@@ -654,6 +695,7 @@ class Ui_ImageDialog(QWidget):
     @pyqtSlot(str)
     def update_msg(self,str):
          self.infomsg.append(str)
+
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

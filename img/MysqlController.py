@@ -152,7 +152,7 @@ class MysqlController:
                 self.curs.execute(sql, args)
                 rows = self.curs.fetchall()
                 #print("rows 결과 :", rows)
-                print("rows 길이 : " , len(rows))
+                #print("rows 길이 : " , len(rows))
                 decode_img, name, color = None,None,None
                 if len(rows) > 0:
                     img = rows[0][0]

@@ -10,7 +10,7 @@ import os
 class Signal(QObject):
     recv_signal = pyqtSignal(np.ndarray)
     disconn_signal = pyqtSignal()
-
+    send_state_signal = pyqtSignal(str,str)
 
 class ClientSocket:
     fileCounter = 0
@@ -86,6 +86,8 @@ class ClientSocket:
                 img_date = datetime.datetime.now().strftime("%Y%m%d")
                 PATH = '../../../img_fursys/' + img_date
 
+                #print("action state : ",action_state)
+                #print("goods state : ", goods_state)
                 #if time == timeVal :
                 if action_state == 'A' and goods_state == 'Y':
                     if camera_state == "CA" :
@@ -115,6 +117,7 @@ class ClientSocket:
                     else :
                         pass
                     #time = 0
+                self.recv.send_state_signal.emit(action_state,goods_state)
 
                 if camera_state == "CA" :
                     #if not self.bMode:
@@ -143,6 +146,7 @@ class ClientSocket:
                         if action_state == 'A' and goods_state == 'Y':
                             cv2.imwrite(os.path.join(PATH, filename), decode_img)
                 '''
+
             except Exception as e:
                 print('Recv() Error :', e)
                 break
