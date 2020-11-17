@@ -22,7 +22,7 @@ class Bl_Ui_Draw_Pose():
             poseObj = bpy.data.objects.new(f'pos{Bl_Ui_Draw_Pose.draw_Pose_List_Count}', poseMesh)
             poseObj.location = cur_loc
             poseObj.rotation_euler = cur_rot
-            poseObj.scale = (0.1, 0.1, 0.1)
+            poseObj.scale = (0.01, 0.01, 0.01)
             # set color
             poseObj.active_material = Bl_Ui_Draw_Pose.mat_Magenta
             # link poseObject to blender
