@@ -292,4 +292,4 @@ def main():
 if __name__ == "__main__":
     main()
 
-# 이권수
+# 강호준
