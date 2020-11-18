@@ -117,5 +117,5 @@ class RealSense:
     def closeSense(self):
         self.device_manager.disable_streams()
 
-
+#Jun Ha Sohn
  
