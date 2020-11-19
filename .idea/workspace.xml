@@ -1,7 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="ChangeListManager">
-    <list default="true" id="bc654a33-d178-4b50-86f4-b3742927238f" name="Default Changelist" comment="" />
+    <list default="true" id="bc654a33-d178-4b50-86f4-b3742927238f" name="Default Changelist" comment="">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blender/UR5_Handler.blend" beforeDir="false" afterPath="$PROJECT_DIR$/blender/UR5_Handler.blend" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/blender/UR5_Handler.blend1" beforeDir="false" afterPath="$PROJECT_DIR$/blender/UR5_Handler.blend1" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/IkMover.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/IkMover.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/bl_ui_draw_pose.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/bl_ui_draw_pose.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/maviz.py" beforeDir="false" afterPath="$PROJECT_DIR$/src/maviz.py" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -22,6 +29,7 @@
     <property name="last_opened_file_path" value="$PROJECT_DIR$" />
     <property name="settings.editor.selected.configurable" value="com.jetbrains.python.configuration.PyActiveSdkModuleConfigurable" />
   </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
   <component name="SvnConfiguration">
     <configuration />
   </component>

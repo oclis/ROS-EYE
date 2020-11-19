@@ -72,8 +72,8 @@ class MavizHandler(bpy.types.Operator):
     def execute(self, context):
         self.draw_handle = None
         self.draw_event = None
-        self.widgets = []  # widget group 1
-        self.widgets2 = []  # widget group 2
+        self.widgets = []
+        self.widgets2 = []
 
         wm = context.window_manager
         args = (self, context)
