@@ -292,4 +292,4 @@ def main():
 if __name__ == "__main__":
     main()
 
-# 김진욱
+# 김_진욱
