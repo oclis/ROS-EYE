@@ -2,102 +2,57 @@
 
 # ROS_EYE
 
-ROS기반 영상인식기술을 이용한 물류적재로봇 제어 SW
+Logistics loading robot control SW using ROS-based image recognition technology. 
+Consists of 3D images linked with simulation so that robots can be easily used in industrial sites. 
+Robot intelligent control package that integrates image processing module (OpenCV) and robot control module (ROS).
 
-산업현장 로봇을 쉽게 사용할 수 있도록 시뮬레이션과 연동되는 통합화면 으로 구성되는 영상처리모듈(OpenCV)과 로봇제어 모듈(ROS)이 통합된 로봇지능제어 패키지
 
-## 설치
+## Getting started
 
-git clone https://github.com/oclis/ROS-EYE.git
+Git-clone is an online open source Code for solving problems and promoting this project. 
+The workspace starts automatically with just one click.
+https://github.com/oclis/ROS-EYE.git
 
-## Blender Setting
 
-blender version 2.80이상 설치 [https://www.blender.org/](https://www.blender.org/) 참조
-blender 설치 위치는 home 경로 위치에 설치
+## Development Environment
 
-필수 모듈 설치
-local에 설치된 python과 blender의 python은 개별관리 된다.
-blender Python용 모듈을 별로도 다시 pip를 이용하여 설치 해야한다.
-설치된 blender의 python 경로 "blender/2.83/python/bin" 폴더에서 pip를 이용해 blender python 모듈을 설치 가능하다.
-
-#### 예시 이미지
+Install blender version 2.80 or higher https://www.blender.org/ 
+Blender installation location is installed in the home path location.
+You have to install the Python(for Blender) module separately again using pip.
 
 <img src="/doc/guide5.png" width="800px" height="500px" title="px(픽셀) 크기 설정" alt="ROS_EYE"></img><br/>
 
-#### Blender Python 추가 모듈 목록
-	blender/2.83/python/bin$ ./python3.7m -m ensurepip 실행
+### List of additional modules
+	blender/2.83/python/bin$ ./python3.7m -m ensurepip 
 	blender/2.83/python/bin$ ./python3.7m -m pip install opencv-python
 	blender/2.83/python/bin$ ./python3.7m -m pip install pyrealsense2
 	blender/2.83/python/bin$ ./python3.7m -m pip install multipledispatch
 
->아래의 오류가 발생한 경우
-<pre>
-<code>
-WARNING: You are using pip version 19.0.3; however, version 20.2.2 is available.  
-you should consider upgrading via the  
-'/home/"user_name"/blender/2.83/python/bin/python3.7m -m pip install --upgrade pip' command
-</code>
-</pre>
-* 다음으로 해결 : _./python3.7m -m pip install --upgrade pip_
 
-### 실행
+### Run ROS-EYE
 
-#### ROS_EYE가 설치 된 경로에서 blender를 실행
 <img src="/doc/guide1.png" width="800px" height="500px" title="px(픽셀) 크기 설정" alt="ROS_EYE"></img><br/>
 
-#### blender가 실행되면 ROS_EYE/blender에 있는 UR5_Handler.blend 파일을 연다.
 <img src="/doc/guide2.png" width="800px" height="500px" title="px(픽셀) 크기 설정" alt="ROS_EYE"></img><br/>
 
-#### blender 메뉴 라인의 Scripting 탭 선택
 <img src="/doc/guide3.png" width="800px" height="500px" title="px(픽셀) 크기 설정" alt="ROS_EYE"></img><br/>
 
-
-#### Scripting 탭에서 Run script 버튼 실행
 <img src="/doc/guide4.png" width="800px" height="500px" title="px(픽셀) 크기 설정" alt="ROS_EYE"></img><br/>
 
 <img src="/doc/guide6.jpg" width="800px" height="500px" title="px(픽셀) 크기 설정" alt="ROS_EYE"></img><br/>
 
-### 마우스
 
-1. 왼쪽마우스
-   → 드래그 : 로봇팔 이동
-2. 오른쪽마우스
-   → 클릭 : 좌표 설정
 
-### 키보드
+## Links
+- Youtube   https://www.youtube.com/channel/UCbMtVRVXOUp9ImdxNpuDrPQ/
+- Slack     https://app.slack.com/client/T01EV890D41/C01FKGL5GR0 
+            https://app.slack.com/client/T01EV890D41/D01FGEC0Y2H 
+- Medium    https://medium.com/@magentarobotics 
+- Instagram https://www.instagram.com/magenta_robotics/ 
 
-로컬 축 기준 카메라 시점 변환 및 로봇이동  
- y 　z  
-↑↗  
-▣ → x  
 
-* 카메라  
-1 : 기본 위치로 이동  
-2 : 우상측 사선방향  
-3 : 우측 측면  
-4 : 좌상측 사선방향  
-5 : 좌측 측면
-* 로봇  
-Numpad 8 : +y  
-Numpad 5 : -y  
-Numpad 6 : +x  
-Numpad 4 : -x  
-Numpad 7 : +z  
-Numpad 9 : -z  
-'I' : +x회전 (Clockwise = '+')  
-'K' : -x회전  
-'J' : +y회전  
-'L' : -y회전  
+## License
+- GNU General Public License v3.0 only
+- Apache License 2.0
+- GNU General Public License v3.0 or later
 
-### 메뉴판
-
-Run : GUI에 표시된 좌표로 로봇 이동(동작)
-Motion Delete : GUI에 표시된 좌표 삭제(GUI에서만 삭제됨)
-Save : GUI에 표시된 좌표를 ~/Data 폴더에 *.txt로 저장
-Load : ~/Data에서 좌표 불러오기
-Program Shutdown : blender종료
-
-### 로봇 동작
-
-1. 오른쪽마우스로 좌표를 1개 이상 설정하고 Run버튼으로 로봇 동작
-2. ~/Data에 저장된 좌표를 "Load"버튼으로 불러 와 Run버튼으로 로봇 동작
