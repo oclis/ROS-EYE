@@ -54,12 +54,9 @@ class MysqlController:
 
     def db_connect(self):
         try:
-<<<<<<< HEAD
             #self.conn = pymysql.connect(host=self.host, user=self.id, port=333, password=self.pw, db=self.db_name, charset='utf8')
             self.conn = pymysql.connect(host=self.host, user=self.id, password=self.pw, db=self.db_name, charset='utf8')
-=======
-            self.conn = pymysql.connect(host=self.host, user=self.id, port=333, password=self.pw, db=self.db_name, charset='utf8')
->>>>>>> 4d20f5110fddbcc101e4cb698d22947808fb3ccd
+            #self.conn = pymysql.connect(host=self.host, user=self.id, port=333, password=self.pw, db=self.db_name, charset='utf8')
             self.curs = self.conn.cursor()
             self.bConnect = True
             self.bMode = False

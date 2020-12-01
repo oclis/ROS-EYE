@@ -247,16 +247,24 @@ class Ui_ImageDialog(QWidget):
         #self.imgSrc, name, color = self.d.select_partimage(pc)
         #self.pname.setText(name)
         #self.ccode.setText(color)
+        if self.idx == 0 :
+            self.alarm_box("조회 오류", "처음 이미지입니다")
+        else :
+            self.idx = self.idx - 1
 
     def searchNext(self):
         self.infomsg_append("다음 품종 이미지")
         #self.imgSrc, name, color = self.d.select_partimage(pc)
         #self.pname.setText(name)
         #self.ccode.setText(color)
+        if self.idx == 0 :
+            self.alarm_box("조회 오류", "마지막 이미지입니다")
+        else :
+            self.idx = self.idx + 1
 
     def convert_cv_qt(self, frame):
         """Convert from an opencv image to QPixmap"""
-        frame = cv2.resize(frame,(0,0),fx=0.7,fy=0.7)
+        frame = cv2.resize(frame,(0,0),fx=1,fy=1)
         #frame = cv2.resize(frame,dsize=(800,600))
         rgb_image = cv2.cvtColor(frame, cv2.COLOR_BGR2RGB)
         h, w, ch = rgb_image.shape
@@ -270,13 +278,14 @@ class Ui_ImageDialog(QWidget):
         fname = QFileDialog.getOpenFileName(self)
         #self.label.setText(fname[0])
         img_path = fname[0]
+        print(img_path)
         fname_list = img_path.split('/')
         length = len(fname_list)
         #print(fname_list)
-        img_name = fname_list[length-2] + "/" + fname_list[length-1]
-        #self.infomsg_append(img_name)
+        img_name = fname_list[length-1]
+        self.infomsg_append(img_name)
         self.imgSrc = cv2.imread(img_path)
-        self.f_label.setImage(self.convert_cv_qt(self.imgSrc))
+        self.f_label.setPixmap(self.convert_cv_qt(self.imgSrc))
         #self.infomsg_append("이미지 사이즈 : " +  str(self.imgSrc.shape))
         #self.iv.setImage(self.convert_cv_qt(self.imgSrc))
         #return fname
