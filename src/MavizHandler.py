@@ -288,6 +288,6 @@ def main():
     setup_workspace()
     register()
     bpy.ops.wm.maviz_handler()
-
+# 김진욱
 if __name__ == "__main__":
     main()
