@@ -27,6 +27,7 @@ QApplication.setAttribute(Qt.AA_EnableHighDpiScaling, True)
 
 class Ui_ImageDialog(QWidget):
 
+    infomsg_count = 0
     def __init__(self):
         super().__init__()
         self.c = img_client.ClientSocket(self)
@@ -193,6 +194,9 @@ class Ui_ImageDialog(QWidget):
         self.selectbtn = QPushButton('조회')  # 나중에 연결상태표시를 아이콘으로 했으면 함.
         self.selectbtn.clicked.connect(self.selectRecode)
         box.addWidget(self.selectbtn)
+        self.updatebtn = QPushButton('수정')  # 나중에 연결상태표시를 아이콘으로 했으면 함.
+        self.updatebtn.clicked.connect(self.updateRecode)
+        box.addWidget(self.updatebtn)
         popupbutton = QPushButton('품종인식 TEST')
         menu = QMenu(self)
         menu.addAction('Feature Matching',self.fm)
@@ -246,7 +250,7 @@ class Ui_ImageDialog(QWidget):
         self.iv.crop.cut_signal.connect(self.cut_image)
         self.f.report.msg_signal.connect(self.update_msg)
         self.c.disconn.disconn_signal.connect(self.updateDisconnect)
-        self.infomsg.append('이미지 서버에 접속 했습니다')
+        self.infomsg_append('이미지 서버에 접속 했습니다')
 
     def updateImageLable(self, q_img):
         self.image_label.setPixmap(q_img)
@@ -260,28 +264,28 @@ class Ui_ImageDialog(QWidget):
         self.iv.setImage(self.convert_cv_qt(self.imgCur))
         #self.rst_label.setPixmap(self.convert_cv_qt(self.imgCur))
         self.imgSrc =  self.imgCur.copy()
-        self.infomsg.append('결과 영상을 업데이트 했습니다')
+        self.infomsg_append('결과 영상을 업데이트 했습니다')
 
     def updateDisconnect(self):
         self.btn.setText('접속')
-        self.infomsg.append('이미지 서버에 접속이 종료되었습니다')
+        self.infomsg_append('이미지 서버에 접속이 종료되었습니다')
 
     def onActivatedCombo(self, text):
-        self.infomsg.append(text)
+        self.infomsg_append(text)
         #self.c.changeMode()
         self.c.changeMode(text)
-        self.infomsg.append('이미지 채널이 변경 되었습니다')
+        self.infomsg_append('이미지 채널이 변경 되었습니다')
 
     def sendMsg(self):
         sendmsg = self.sendmsg.text()
-        self.infomsg.append(sendmsg)
+        self.infomsg_append(sendmsg)
         self.sendmsg.clear()
 
     def clearMsg(self):
         self.infomsg.clear()
 
     def imgProcess(self):
-        self.infomsg.append('영상처리를 시작 합니다. ')
+        self.infomsg_append('영상처리를 시작 합니다. ')
         yCrCb = cv2.cvtColor(self.imgCur, cv2.COLOR_BGR2YCrCb)
         # y, Cr, Cb로 컬러 영상을 분리 합니다.
         y, Cr, Cb = cv2.split(yCrCb)
@@ -314,10 +318,10 @@ class Ui_ImageDialog(QWidget):
             if check_result :
                 self.d.insert_partname(pn,cc,pc)
                 self.d.insert_partimage(pc,self.imgSrc)
-                self.infomsg.append('데이터를 MAVIZ DB에 저장 합니다. ')
+                self.infomsg_append('데이터를 MAVIZ DB에 저장 합니다. ')
                 self.pname.clear()
             else :
-                self.infomsg.append('데이터가 이미 DB에 존재합니다')
+                self.infomsg_append('데이터가 이미 DB에 존재합니다')
             #self.ccode.clear()
             #self.pcode.clear()
         else :
@@ -328,7 +332,7 @@ class Ui_ImageDialog(QWidget):
         pc = self.pcode.text()
         if len(pc) > 0 :
             self.imgSrc,name,color = self.d.select_partimage(pc)
-            self.infomsg.append('데이터를 MAVIZ DB에서 조회 합니다. ')
+            self.infomsg_append('데이터를 MAVIZ DB에서 조회 합니다. ')
             self.pname.clear()
             self.ccode.clear()
             #self.pcode.clear()
@@ -338,6 +342,12 @@ class Ui_ImageDialog(QWidget):
             self.iv.setImage(self.convert_cv_qt(self.imgSrc))
         else :
             self.alarm_box("조회 오류", "부품코드를 입력해주세요")
+
+    def updateRecode(self):
+        pc = self.pcode.text()
+        if len(pc) > 0 :
+            self.d.change_image()
+
 
 
 
@@ -357,20 +367,20 @@ class Ui_ImageDialog(QWidget):
         self.iv.setImage(self.convert_cv_qt(self.imgCur))
 
     def test2(self):
-        self.infomsg.append('test 2 ')
+        self.infomsg_append('test 2 ')
     def test3(self):
-        self.infomsg.append('test 3 ')
+        self.infomsg_append('test 3 ')
     def test4(self):
-        self.infomsg.append('test 4 ')
+        self.infomsg_append('test 4 ')
 
     def closeEvent(self, e):
         self.c.stop()
 
     def checkBoxState(self):
         if self.checkBox1.isChecked() == True:
-            self.infomsg.append('Feature matcing!! checked')
+            self.infomsg_append('Feature matcing!! checked')
         else:
-            self.infomsg.append('Feature matcing!! end')
+            self.infomsg_append('Feature matcing!! end')
 
     def convert_cv_qt(self, frame):
         """Convert from an opencv image to QPixmap"""
@@ -408,22 +418,32 @@ class Ui_ImageDialog(QWidget):
 
     def pushButtonClicked(self) :
         fname = QFileDialog.getOpenFileName(self)
-        #self.label.setText(fname[0])
-        img_path = fname[0]
-        fname_list = img_path.split('/')
-        length = len(fname_list)
-        #print(fname_list)
-        img_name = fname_list[length-2] + "/" + fname_list[length-1]
-        self.infomsg.append(img_name)
-        self.imgSrc = cv2.imread(img_path)
-        self.infomsg.append("이미지 사이즈 : " +  str(self.imgSrc.shape))
-        self.iv.setImage(self.convert_cv_qt(self.imgSrc))
+        if fname[0]:
+            img_path = fname[0]
+            fname_list = img_path.split('/')
+            length = len(fname_list)
+            #print(fname_list)
+            img_name = fname_list[length-2] + "/" + fname_list[length-1]
+            self.infomsg_append(img_name)
+            self.imgSrc = cv2.imread(img_path)
+            self.infomsg_append("이미지 사이즈 : " +  str(self.imgSrc.shape))
+            self.iv.setImage(self.convert_cv_qt(self.imgSrc))
+        else :
+            QMessageBox.about(self, 'Warning', '파일을 선택하지 않았습니다.')
         #return fname
 
     def alarm_box(self, title, message):
         msg_box = QMessageBox(self)
         msg_box.about(self, title, message)
 
+    def infomsg_append(self, str):
+        self.infomsg.append(str)
+        self.infomsg_count += 1
+        print(self.infomsg_count)
+        if self.infomsg_count == 10000 :
+            self.infomsg_count = 0
+            self.clearMsg()
+            self.iv.clear()
 
 
 # 슬랏  #####################################
@@ -437,12 +457,12 @@ class Ui_ImageDialog(QWidget):
     def cut_image(self,cv_img, h, w):
         self.imgSrc = cv_img
         qt_img = self.convert_cv_qt(cv_img)
-        self.infomsg.append("이미지 사이즈 : width = " + str(w) + ", height = " + str(h))
+        self.infomsg_append("이미지 사이즈 : width = " + str(w) + ", height = " + str(h))
         self.updateFeatureLable(qt_img)
 
     @pyqtSlot(str)
     def update_msg(self,str):
-         self.infomsg.append(str)
+         self.infomsg_append(str)
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

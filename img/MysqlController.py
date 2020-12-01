@@ -36,11 +36,37 @@ import base64
 
 class MysqlController:
     def __init__(self, host, id, pw, db_name):
+        '''
         self.conn = pymysql.connect(host=host, user= id, port=333, password=pw, db=db_name,charset='utf8')
         #self.conn = pymysql.connect(host=host, user= id,  password=pw, db=db_name,charset='utf8')
         self.curs = self.conn.cursor()
         self.bConnect = True
         self.bMode = False
+        '''
+        self.host = host
+        self.id = id
+        self.pw = pw
+        self.db_name = db_name
+        self.conn = None
+        self.curs = None
+        self.bConnect = False
+        self.bMode = False
+
+    def db_connect(self):
+        try:
+            #self.conn = pymysql.connect(host=self.host, user=self.id, port=333, password=self.pw, db=self.db_name, charset='utf8')
+            self.conn = pymysql.connect(host=self.host, user=self.id, password=self.pw, db=self.db_name, charset='utf8')
+            self.curs = self.conn.cursor()
+            self.bConnect = True
+            self.bMode = False
+        except Exception as e:
+            print('Connect Error : ', e)
+
+    def db_disconnect(self):
+        if self.conn is not None:
+            self.bConnect = False
+            self.bMode = False
+            self.conn.close()
 
     def check_data(self, pcode):
         if self.bConnect :
@@ -61,7 +87,7 @@ class MysqlController:
                 pass
         else :
             # send message to parent
-            print('DB is Not connected!!!1')
+            print('DB is Not connected!!!!')
 
 
     def insert_partname(self, pname, ccode, pcode):    
@@ -77,11 +103,10 @@ class MysqlController:
                 #self.conn.close()
         else :
             # send message to parent 
-            print('DB is Not connected!!!1')
+            print('DB is Not connected!!!!')
 
     def insert_partimage(self, pcode, frame):
         # 이미지 데이터를 업로드 하는 부분이 String으로 바꾸어 주어야 함.
-
         if self.bConnect :
             try:
                 result, e_img = cv2.imencode('.jpg', frame)
@@ -107,7 +132,35 @@ class MysqlController:
                 pass
         else : 
             # send message to parent 
-            print('DB is Not connected!!!1')
+            print('DB is Not connected!!!!')
+
+    def modify_partimage(self, pcode, frame):
+        # 이미지 데이터를 업로드 하는 부분이 String으로 바꾸어 주어야 함.
+        if self.bConnect :
+            try:
+                result, e_img = cv2.imencode('.jpg', frame)
+                e_img = np.array(e_img)
+                e_img_array_data = e_img.tostring()
+                e_img_stringData = base64.b64encode(e_img_array_data)
+                e_img_stringData = e_img_stringData.decode()
+                h, w, sz = frame.shape
+
+                sql = """SELECT pid FROM partname WHERE pcode = %s"""
+                args = (pcode)
+                self.curs.execute(sql, args)
+                rows = self.curs.fetchall()
+                pid = rows[0][0]
+                print(pid)
+                sql = """UPDATE partimage SET image=%s,size=%s WHERE pid = %s"""
+                args = (pid,e_img_stringData,sz)
+                self.curs.execute(sql,args)
+                self.conn.commit()
+            finally:
+                #self.conn.close()
+                pass
+        else :
+            # send message to parent
+            print('DB is Not connected!!!!')
 
     #타이핑한 품종으로 로드
     def select_partimage(self, pcode):
@@ -134,7 +187,7 @@ class MysqlController:
                 pass
         else :
             # send message to parent
-            print('DB is Not connected!!!1')
+            print('DB is Not connected!!!!')
 
     #detect 한 품종으로 이미지 로드
     def load_image(self, pcode) :
@@ -152,7 +205,7 @@ class MysqlController:
                 self.curs.execute(sql, args)
                 rows = self.curs.fetchall()
                 #print("rows 결과 :", rows)
-                print("rows 길이 : " , len(rows))
+                #print("rows 길이 : " , len(rows))
                 decode_img, name, color = None,None,None
                 if len(rows) > 0:
                     img = rows[0][0]
@@ -170,4 +223,25 @@ class MysqlController:
                 pass
         else:
             # send message to parent
-            print('DB is Not connected!!!1')
+            print('DB is Not connected!!!!')
+
+    def change_image(self, pcode, frame) :
+        if self.bConnect:
+            try:
+                sql = """SELECT pid FROM partname WHERE pcode = %s"""
+                args = (pcode)
+                self.curs.execute(sql, args)
+                rows = self.curs.fetchall()
+                pid = rows[0][0]
+                print(pid)
+                sql = """UPDATE partimages SET images = %s WHERE pid = %s"""
+                args = (frame, pid)
+                self.curs.execute(sql, args)
+                rows = self.curs.fetchall()
+                print(rows)
+            finally:
+                # self.conn.close()
+                pass
+        else:
+            # send message to parent
+            print('DB is Not connected!!!!')
