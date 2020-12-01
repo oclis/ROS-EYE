@@ -20,7 +20,7 @@ import torch
 #import yaml
 #from scipy.cluster.vq import kmeans
 #from scipy.signal import butter, filtfilt
-from tqdm import tqdm
+#from tqdm import tqdm
 
 from utils.google_utils import gsutil_getsize
 #from utils.torch_utils import init_seeds as init_torch_seeds
