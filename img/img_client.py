@@ -109,11 +109,13 @@ class ClientSocket:
                         PATHB = PATH + "/colorB"
                         self.create_folder(PATHB)
                         roi_y = 0
-                        roi_x = 500
+                        roi_x = 315
                         roi_w = 640
                         roi_h = 640
                         decode_imgROI = decode_img[roi_y:roi_y+roi_h, roi_x:roi_x+roi_w]
+                        decode_imgROI = cv2.resize(decode_imgROI, dsize=(640, 640))
                         cv2.imwrite(os.path.join(PATHB, filename), decode_imgROI)
+                        #cv2.imwrite(os.path.join(PATHB, filename), decode_img)
                     else :
                         pass
                     #time = 0

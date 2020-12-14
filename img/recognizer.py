@@ -1,6 +1,7 @@
 import cv2
 import numpy as np
 from PyQt5.QtCore import pyqtSignal,QObject
+from PyQt5.QtGui import QPixmap
 
 class Signal(QObject):  
     msg_signal = pyqtSignal(str)
@@ -9,8 +10,9 @@ class featureMatcher:
 
     def __init__(self):
         self.bMode = False  
-        self.report = Signal() 
-        
+        self.report = Signal()
+
+
     def get_corrected_img(self, img1, img2):
         MIN_MATCHES = 20
         self.report.msg_signal.emit('start processing')
@@ -41,6 +43,7 @@ class featureMatcher:
 
         self.report.msg_signal.emit('end processing')            
         return img3
+
 
 def find_almost_similar_image_locations(im_search, im_source, threshold=0.8, rgb=True):
     return ImageMatching(im_search, im_source, threshold, rgb).find_best_result()
@@ -348,3 +351,4 @@ def _cal_rgb_confidence(img_src_rgb, img_sch_rgb):
     weighted_confidence = bgr_confidence[0] * weight[0] + bgr_confidence[1] * weight[1] + bgr_confidence[2] * weight[2]
 
     return weighted_confidence
+

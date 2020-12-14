@@ -28,12 +28,13 @@ class ImageViewer(QLabel):
 
         #self.setGeometry(QRect(110, 550, 640, 640))
         self.setText("Feature")
-        #self.setAlignment(Qt.AlignTop | Qt.AlignLeft)
-        self.setAlignment(Qt.AlignCenter)
+        self.setAlignment(Qt.AlignTop | Qt.AlignLeft)
+        #self.setAlignment(Qt.AlignCenter)
         self.setWordWrap(False)
         #self.setFixedSize(640,640)
         self.createActions()
         self.show()
+        #self.showMaximized()
 
 
     def setImage(self, q_img):        
