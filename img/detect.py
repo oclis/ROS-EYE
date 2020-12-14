@@ -171,11 +171,25 @@ class Detector:
                             #print("percent",type(percent))
                             label = '%s %.2f' % (names[int(cls)], conf)
                             print(percent)
-                            if percent > 0.70:
+                            x_point = (int(xyxy[2])+int(xyxy[0])) /2
+                            y_point = (int(xyxy[3])+int(xyxy[1])) /2
+                            width = int(xyxy[2])- int(xyxy[0])
+                            height = int(xyxy[3])- int(xyxy[1])
+                            log_string = img_time + "," + goods_type + "," + str(width) + "," + str(height) + "," + (str(x_point),str(y_point))
+                            try:
+                                if not os.path.exists("log"):
+                                    os.makedirs("log")
+                            except OSError:
+                                print('Error: Creating directory. log')
+                            f = open("./log/" + img_date + '_log.csv', mode='at', encoding='utf-8')
+                            f.writelines(log_string + '\n')
+                            f.close()
+                            print("log_string : ", log_string)
+                            #if percent > 0.70:
                             #plot_one_box(xyxy, im0, label=label, color=colors[int(cls)], line_thickness=3)
-                                plot_one_box(xyxy, im0, label=label, color=(0,0,255), line_thickness=3)
-                                total = total + percent
-                                more_than_90 += 1
+                            plot_one_box(xyxy, im0, label=label, color=(0,0,255), line_thickness=3)
+                                #total = total + percent
+                                #more_than_90 += 1
 
                     if d.bConnect == True :
                         #avg = total/len(det)
@@ -200,7 +214,8 @@ class Detector:
                                 returnData = img_time+","+name+","+goods_type+","+str(more_than_90)
                                 #self.infomsg_append(img_time+",%s,%s,%d" % (name, goods_type, more_than_90))
                                 #log_string = img_time + "," + name + ","+goods_type+"," + str(len(det)) +","+ avg
-                                log_string = img_time + "," + name + ","+goods_type+"," + str(more_than_90) +","+ str(avg)
+                                #log_string = img_time + "," + name + ","+goods_type+"," + str(more_than_90) +","+ str(avg)
+                                log_string = img_time + "," + name + "," + goods_type + ","
                                 try:
                                     if not os.path.exists("log"):
                                         os.makedirs("log")
@@ -251,6 +266,7 @@ class Detector:
                             h = int(vid_cap.get(cv2.CAP_PROP_FRAME_HEIGHT))
                             vid_writer = cv2.VideoWriter(save_path, cv2.VideoWriter_fourcc(*fourcc), fps, (w, h))
                         vid_writer.write(im0)
+            time.sleep(1)
         return returnData
         '''
         if save_txt or save_img:
